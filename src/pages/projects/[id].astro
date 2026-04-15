@@ -1,0 +1,129 @@
+---
+import { getCollection, render } from "astro:content";
+import BaseHead from "../../components/BaseHead.astro";
+import Footer from "../../components/Footer.astro";
+import FormattedDate from "../../components/FormattedDate.astro";
+import Header from "../../components/Header.astro";
+import { SITE_TITLE } from "../../consts";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: project,
+  }));
+}
+
+const project = Astro.props;
+const { Content } = await render(project);
+const { title, description, pubDate, updatedDate, status, repoUrl, liveUrl, tags } = project.data;
+
+const statusLabel = { active: "Active", wip: "In Progress", archived: "Archived" };
+const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gray))" };
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <BaseHead title={`${title} -- ${SITE_TITLE}`} description={description} />
+    <style>
+      .prose {
+        width: 720px;
+        max-width: calc(100% - 2em);
+        margin: 0 auto;
+        padding: 1em;
+      }
+      .project-header {
+        padding: 2em 0 1.5em;
+        border-bottom: 1px solid rgba(128,128,128,0.15);
+        margin-bottom: 2em;
+      }
+      .back-link {
+        font-size: 0.85rem;
+        color: rgb(var(--accent));
+        text-decoration: none;
+        display: inline-block;
+        margin-bottom: 1.25rem;
+      }
+      .back-link:hover { text-decoration: underline; }
+      .project-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+      }
+      .status-badge {
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 0.15em 0.55em;
+        border: 1px solid;
+        border-radius: 999px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .date { font-size: 0.85rem; color: rgb(var(--gray)); }
+      h1 {
+        margin: 0 0 0.5rem;
+        font-size: clamp(1.5rem, 4vw, 2.25rem);
+        line-height: 1.2;
+      }
+      .description {
+        color: rgb(var(--gray));
+        margin: 0 0 1.25rem;
+        font-size: 1.05rem;
+      }
+      .external-links { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+      .external-links a {
+        font-size: 0.875rem;
+        color: rgb(var(--accent));
+        text-decoration: none;
+        border: 1px solid rgb(var(--accent));
+        padding: 0.3rem 0.75rem;
+        border-radius: 6px;
+        transition: background 0.15s, color 0.15s;
+      }
+      .external-links a:hover { background: rgb(var(--accent)); color: #000; }
+      .tags { display: flex; flex-wrap: wrap; gap: 0.4em; margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <Header />
+    <main>
+      <div class="prose">
+        <a class="back-link" href="/projects">&larr; All projects</a>
+        <div class="project-header">
+          <div class="project-meta">
+            <span
+              class="status-badge"
+              style={`color: ${statusColor[status]}; border-color: ${statusColor[status]};`}
+            >
+              {statusLabel[status]}
+            </span>
+            <span class="date"><FormattedDate date={pubDate} /></span>
+            {updatedDate && (
+              <span class="date">Updated: <FormattedDate date={updatedDate} /></span>
+            )}
+          </div>
+          <h1>{title}</h1>
+          <p class="description">{description}</p>
+          {(repoUrl || liveUrl) && (
+            <nav class="external-links">
+              {repoUrl && <a href={repoUrl} target="_blank" rel="noopener">View repo &rarr;</a>}
+              {liveUrl && <a href={liveUrl} target="_blank" rel="noopener">Live site &rarr;</a>}
+            </nav>
+          )}
+          {tags.length > 0 && (
+            <div class="tags">
+              {tags.map((tag) => (
+                <a href={`/tags/${tag}`} class="tag">{tag}</a>
+              ))}
+            </div>
+          )}
+        </div>
+        <Content />
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>
