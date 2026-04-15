@@ -1,63 +1,64 @@
-# Astro Starter Kit: Blog
+# johnmcdougal.com
 
-```sh
-npm create astro@latest -- --template blog
+Personal site and blog for John McDougal — Sacramento-based IT Consultant, Homelabber, and chronic pattern-finder.
+
+**Live:** [johnmcdougal.com](https://johnmcdougal.com)
+
+---
+
+## About this project
+
+Built in public. This is the source for my personal site — a place to document what I'm building, thinking, and learning across IT, homelabbing, cybersecurity, and knowledge work.
+
+The stack is deliberately boring in the best way: static files, no client-side framework, fast everywhere. Content lives in Markdown and MDX. Deploys automatically on every push via Cloudflare Pages.
+
+## Stack
+
+- **[Astro 5](https://astro.build)** — static site generator
+- **[Cloudflare Pages](https://pages.cloudflare.com)** — hosting + CDN + deploy pipeline
+- **Markdown / MDX** — all content authored here
+- **Custom CSS** — three-theme system (light / dark / true black OLED), teal accent (`#14b8a6`)
+
+## Project structure
+
+```
+src/
+├── components/       # Header, Footer, BaseHead, etc.
+├── content/
+│   ├── blog/         # Blog posts (.md / .mdx)
+│   └── projects/     # Project entries (.md / .mdx)
+├── layouts/          # Page layouts
+├── pages/            # Routes (index, about, blog, projects, tags)
+└── styles/
+    └── global.css    # Entire theme system lives here
+public/
+├── robots.txt        # AI crawler governance
+└── llms.txt          # Machine-readable site inventory for LLMs
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Local development
 
-Features:
+> **Note:** Run `npm install` and dev/build commands from a local directory that is **not** inside a cloud-synced folder (Google Drive, OneDrive, etc.). Synced folders cause file-lock errors with `node_modules`. Keep source in your synced folder for backup; clone or copy to a local path for building.
 
-- ✅ Minimal styling (make it your own!)
-- ✅ 100/100 Lighthouse performance
-- ✅ SEO-friendly with canonical URLs and Open Graph data
-- ✅ Sitemap support
-- ✅ RSS Feed support
-- ✅ Markdown & MDX support
+| Command           | Action                                      |
+| :---------------- | :------------------------------------------ |
+| `npm install`     | Install dependencies                        |
+| `npm run dev`     | Start local dev server at `localhost:4321`  |
+| `npm run build`   | Build production site to `./dist/`          |
+| `npm run preview` | Preview build locally before deploying      |
 
-## 🚀 Project Structure
+Cloudflare Pages deploys automatically on every push to `main`.
 
-Inside of your Astro project, you'll see the following folders and files:
+## Future: self-hosting path
 
-```text
-├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── content/
-│   ├── layouts/
-│   └── pages/
-├── astro.config.mjs
-├── README.md
-├── package.json
-└── tsconfig.json
-```
+The site builds to pure static files in `dist/` — portable to any host. To move off Cloudflare Pages:
+1. Point an A record at your VPS IP
+2. Serve `dist/` with nginx or Caddy + Let's Encrypt
+3. Set up a CI step to build and rsync on push
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+No site code changes required.
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+## Related
 
-The `src/content/` directory contains "collections" of related Markdown and MDX documents. Use `getCollection()` to retrieve posts from `src/content/blog/`, and type-check your frontmatter using an optional schema. See [Astro's Content Collections docs](https://docs.astro.build/en/guides/content-collections/) to learn more.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
-
-## Credit
-
-This theme is based off of the lovely [Bear Blog](https://github.com/HermanMartinus/bearblog/).
+- [GitHub profile](https://github.com/GrandDay)
+- [LinkedIn](https://www.linkedin.com/in/john-mcdougal-012a02370/)
