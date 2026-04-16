@@ -7,6 +7,10 @@
 
 ## Blog
 - [Hello, World](https://johnmcdougal.com/blog/hello-world/): Introduction to the site -- what you will find here and why it is being built in public.
+- [Hello, World (raw markdown)](https://johnmcdougal.com/blog/hello-world.md): Raw markdown version for efficient LLM consumption.
+
+## Raw Markdown
+All blog posts are available as raw markdown at `/blog/[slug].md` alongside their HTML counterparts.
 
 ## Projects
 - [Homelab](https://johnmcdougal.com/projects/homelab/): Proxmox cluster, four NAS devices, SDN/VxLAN networking, and PBS backups.
