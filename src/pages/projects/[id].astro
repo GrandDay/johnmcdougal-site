@@ -85,6 +85,70 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
       }
       .external-links a:hover { background: rgb(var(--accent)); color: #000; }
       .tags { display: flex; flex-wrap: wrap; gap: 0.4em; margin-top: 1rem; }
+
+      /* Prose content */
+      .prose :global(p) { line-height: 1.75; margin: 0 0 1.1em; color: var(--text); }
+      .prose :global(a) { color: var(--accent); }
+      .prose :global(a:hover) { text-decoration: underline; }
+      .prose :global(h2) {
+        font-size: 1.25rem;
+        margin: 2em 0 0.65em;
+        padding-bottom: 0.35em;
+        border-bottom: 1px solid rgba(128,128,128,0.12);
+        color: var(--text);
+      }
+      .prose :global(h3) { font-size: 1.05rem; margin: 1.5em 0 0.5em; color: var(--text); }
+      .prose :global(ul), .prose :global(ol) {
+        padding-left: 1.5em;
+        margin: 0 0 1.1em;
+        line-height: 1.75;
+        color: var(--text);
+      }
+      .prose :global(li) { margin-bottom: 0.3em; }
+      .prose :global(code) {
+        font-size: 0.875em;
+        background: var(--bg-secondary);
+        padding: 0.15em 0.4em;
+        border-radius: 4px;
+      }
+      .prose :global(pre) {
+        background: var(--bg-secondary);
+        padding: 1.25em;
+        border-radius: 8px;
+        overflow-x: auto;
+        margin: 0 0 1.5em;
+      }
+      .prose :global(pre code) { background: none; padding: 0; font-size: 0.875em; }
+      .prose :global(blockquote) {
+        border-left: 3px solid var(--accent);
+        padding: 0.25em 0 0.25em 1em;
+        margin: 1.5em 0;
+        color: var(--text-muted);
+        font-style: italic;
+      }
+      .prose :global(hr) {
+        border: none;
+        border-top: 1px solid rgba(128,128,128,0.15);
+        margin: 2em 0;
+      }
+
+      /* Sources section — last h2 in the content gets a slightly different treatment */
+      .content-body :global(h2:last-of-type) {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        border-bottom: none;
+        margin-top: 3em;
+        padding-top: 1.5em;
+        border-top: 1px solid rgba(128,128,128,0.15);
+      }
+      .content-body :global(h2:last-of-type + ul),
+      .content-body :global(h2:last-of-type + ol) {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+      }
     </style>
   </head>
   <body>
@@ -121,7 +185,7 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
             </div>
           )}
         </div>
-        <Content />
+        <div class="content-body"><Content /></div>
       </div>
     </main>
     <Footer />
