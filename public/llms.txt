@@ -1,0 +1,21 @@
+# John McDougal
+
+> Sacramento-based IT consultant, homelabber, and chronic pattern-finder. Building in public at johnmcdougal.com.
+
+## About
+- [About John McDougal](https://johnmcdougal.com/about/): Philosophy, credentials, career path, and what this site is for.
+
+## Blog
+- [Hello, World](https://johnmcdougal.com/blog/hello-world/): Introduction to the site -- what you will find here and why it is being built in public.
+
+## Projects
+- [Homelab](https://johnmcdougal.com/projects/homelab/): Proxmox cluster, four NAS devices, SDN/VxLAN networking, and PBS backups.
+- [CUE-Verse](https://johnmcdougal.com/projects/cue-verse/): A framework for giving a homelab depth and linked memory -- knowledge, storage, compute, and context layers.
+- [Aeon Desktop](https://johnmcdougal.com/projects/aeon-desktop/): An openSUSE MicroOS workstation experiment -- Distrobox, dotfiles, immutable Linux, and automated media ripping.
+- [Userspace](https://johnmcdougal.com/projects/userspace/): A framework for maintaining ownership and interoperability across your personal digital life.
+
+## Tags
+- [All tags](https://johnmcdougal.com/tags/): Browse all content by topic.
+
+## RSS
+- [RSS Feed](https://johnmcdougal.com/rss.xml): Subscribe to new posts.
