@@ -91,6 +91,30 @@ border: none;
 border-top: 1px solid rgba(128,128,128,0.15);
 margin: 2rem 0;
 }
+.creds-grid {
+display: flex;
+gap: 2rem;
+align-items: flex-start;
+flex-wrap: wrap;
+}
+.cred-details p,
+.cred-details ul {
+margin: 0 0 0.5rem;
+font-size: 0.95rem;
+}
+.cred-details ul {
+padding-left: 1.25rem;
+}
+.cred-label {
+font-size: 0.7rem;
+font-weight: 700;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(--accent);
+margin: 1rem 0 0.35rem;
+display: block;
+}
+.cred-label:first-child { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -131,6 +155,26 @@ thrives where other plants won't. Still branching.
 <hr />
 
 <div class="section">
+<p class="section-title">Credentials</p>
+<div class="creds-grid">
+<div data-iframe-width="150" data-iframe-height="270" data-share-badge-id="a92e9294-2b42-4598-9e60-d7e285d5213b" data-share-badge-host="https://www.credly.com"></div>
+<div class="cred-details">
+<span class="cred-label">Earned</span>
+<p><strong>CompTIA Security+ CE</strong> -- April 2026</p>
+<span class="cred-label">In progress</span>
+<ul>
+<li>CompTIA CySA+</li>
+<li>CompTIA Network+</li>
+</ul>
+<span class="cred-label">Education</span>
+<p>CalBright College -- current enrollment</p>
+</div>
+</div>
+</div>
+
+<hr />
+
+<div class="section">
 <p class="section-title">What this site is</p>
 <p>This is where I document it publicly. Not because everything is figured out -- it isn't -- but because building in public is how I hold myself accountable and occasionally help someone else avoid an afternoon of confusion.</p>
 <p>If something here clicks, or you want to think through a problem together, that's what it's for.</p>
@@ -160,5 +204,6 @@ thrives where other plants won't. Still branching.
 </div>
 </main>
 <Footer />
+<script is:inline type="text/javascript" async src="//cdn.credly.com/assets/utilities/embed.js"></script>
 </body>
 </html>

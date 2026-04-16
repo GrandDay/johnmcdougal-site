@@ -29,9 +29,9 @@ import HeaderLink from './HeaderLink.astro';
 				aria-label="Toggle theme"
 				title="Cycle theme: light → dark → black"
 			>
-				<span class="theme-icon theme-icon--light">☀️</span>
-				<span class="theme-icon theme-icon--dark">🌙</span>
-				<span class="theme-icon theme-icon--black">⬛</span>
+				<span class="theme-icon theme-icon--light">☀</span>
+				<span class="theme-icon theme-icon--dark">☽</span>
+				<span class="theme-icon theme-icon--black">◉</span>
 			</button>
 		</div>
 	</nav>
@@ -88,18 +88,20 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	.theme-toggle {
 		background: none;
-		border: 1px solid var(--border);
+		border: 1px solid var(--accent);
 		border-radius: 6px;
 		cursor: pointer;
 		padding: 0.25em 0.5em;
-		font-size: 0.875em;
-		color: var(--text-muted);
+		font-size: 1em;
+		color: var(--accent);
+		opacity: 0.75;
 		display: flex;
 		align-items: center;
-		transition: border-color 0.15s ease;
+		transition: opacity 0.15s ease, background 0.15s ease;
 	}
 	.theme-toggle:hover {
-		border-color: var(--accent);
+		opacity: 1;
+		background: var(--accent-glow);
 	}
 	/* Show only the relevant icon per theme */
 	.theme-icon { display: none; }
