@@ -23,3 +23,6 @@ All blog posts are available as raw markdown at `/blog/[slug].md` alongside thei
 
 ## RSS
 - [RSS Feed](https://johnmcdougal.com/rss.xml): Subscribe to new posts.
+
+## Contact
+- john@johnmcdougal.com

@@ -8,3 +8,4 @@ export const SITE_DESCRIPTION =
 export const SITE_AUTHOR = 'John McDougal';
 export const SOCIAL_GITHUB = 'https://github.com/GrandDay';
 export const SOCIAL_LINKEDIN = 'https://www.linkedin.com/in/john-mcdougal-012a02370/';
+export const CONTACT_EMAIL = 'john@johnmcdougal.com';

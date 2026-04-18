@@ -2,7 +2,7 @@
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
-import { SITE_AUTHOR, SITE_TITLE, SOCIAL_GITHUB, SOCIAL_LINKEDIN } from '../consts';
+import { SITE_AUTHOR, SITE_TITLE, SOCIAL_GITHUB, SOCIAL_LINKEDIN, CONTACT_EMAIL } from '../consts';
 ---
 
 <!doctype html>
@@ -199,6 +199,7 @@ thrives where other plants won't. Still branching.
 <nav class="connect-links">
 <a href={SOCIAL_GITHUB} target="_blank" rel="noopener">GitHub</a>
 <a href={SOCIAL_LINKEDIN} target="_blank" rel="noopener">LinkedIn</a>
+<a href={`mailto:${CONTACT_EMAIL}`}>Email</a>
 </nav>
 </div>
 </div>
