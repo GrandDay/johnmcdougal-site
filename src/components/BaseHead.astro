@@ -4,6 +4,7 @@ import type { ImageMetadata } from 'astro';
 import FallbackImage from '../assets/blog-placeholder-1.jpg';
 import { SITE_TITLE, SITE_DESCRIPTION, SITE_AUTHOR, SOCIAL_GITHUB, SOCIAL_LINKEDIN } from '../consts';
 import { Font } from 'astro:assets';
+import PostHog from './PostHog.astro';
 
 interface Props {
 title: string;
@@ -100,3 +101,6 @@ href={new URL('rss.xml', Astro.site)}
 <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
 {isHome && <script type="application/ld+json" set:html={JSON.stringify(websiteSchema)} />}
 {articleSchema && <script type="application/ld+json" set:html={JSON.stringify(articleSchema)} />}
+
+<!-- Analytics -->
+<PostHog />
