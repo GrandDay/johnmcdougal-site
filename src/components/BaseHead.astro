@@ -2,7 +2,7 @@
 import '../styles/global.css';
 import type { ImageMetadata } from 'astro';
 import FallbackImage from '../assets/blog-placeholder-1.jpg';
-import { SITE_TITLE, SITE_DESCRIPTION, SITE_AUTHOR, SOCIAL_GITHUB, SOCIAL_LINKEDIN } from '../consts';
+import { SITE_TITLE, SITE_DESCRIPTION, SITE_AUTHOR, SOCIAL_GITHUB, SOCIAL_LINKEDIN, SOCIAL_TWITTER_HANDLE } from '../consts';
 import { Font } from 'astro:assets';
 import PostHog from './PostHog.astro';
 
@@ -57,14 +57,17 @@ const articleSchema = pubDate ? {
 ---
 
 <!-- Theme: read from localStorage before paint to prevent flash -->
-<script is:inline>(function () {const themes = ['light', 'dark', 'black'];const stored = localStorage.getItem('theme');const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const theme = stored || (prefersDark ? 'dark' : 'light');document.documentElement.setAttribute('data-theme', theme);window.__cycleTheme = function () {const current = document.documentElement.getAttribute('data-theme') || 'light';const next = themes[(themes.indexOf(current) + 1) % themes.length];document.documentElement.setAttribute('data-theme', next);localStorage.setItem('theme', next);};})();
+<script is:inline>(function () {const themes = ['light', 'dark', 'black'];const themeColors = {light: '#ffffff', dark: '#0f172a', black: '#000000'};const stored = localStorage.getItem('theme');const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;const theme = stored || (prefersDark ? 'dark' : 'light');document.documentElement.setAttribute('data-theme', theme);const tc = document.querySelector('meta[name="theme-color"]');if (tc) tc.setAttribute('content', themeColors[theme] || '#14b8a6');window.__cycleTheme = function () {const current = document.documentElement.getAttribute('data-theme') || 'light';const next = themes[(themes.indexOf(current) + 1) % themes.length];document.documentElement.setAttribute('data-theme', next);localStorage.setItem('theme', next);const tc2 = document.querySelector('meta[name="theme-color"]');if (tc2) tc2.setAttribute('content', themeColors[next] || '#14b8a6');};})();
 </script>
 
 <!-- Global Metadata -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="theme-color" content="#14b8a6" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="mask-icon" href="/favicon.svg" color="#14b8a6" />
 <link rel="sitemap" href="/sitemap-index.xml" />
 <link
 rel="alternate"
@@ -90,12 +93,14 @@ href={new URL('rss.xml', Astro.site)}
 <meta property="og:description" content={description} />
 <meta property="og:image" content={new URL(image.src, Astro.url)} />
 
-<!-- Twitter -->
+<!-- Twitter / X -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+{SOCIAL_TWITTER_HANDLE && <meta property="twitter:site" content={`@${SOCIAL_TWITTER_HANDLE}`} />}
+{SOCIAL_TWITTER_HANDLE && <meta property="twitter:creator" content={`@${SOCIAL_TWITTER_HANDLE}`} />}
 
 <!-- JSON-LD Structured Data -->
 <script type="application/ld+json" set:html={JSON.stringify(personSchema)} />

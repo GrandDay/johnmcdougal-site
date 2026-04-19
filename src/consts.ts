@@ -9,3 +9,5 @@ export const SITE_AUTHOR = 'John McDougal';
 export const SOCIAL_GITHUB = 'https://github.com/GrandDay';
 export const SOCIAL_LINKEDIN = 'https://www.linkedin.com/in/john-mcdougal-012a02370/';
 export const CONTACT_EMAIL = 'john@johnmcdougal.com';
+// Set after handle is reserved -- used for twitter:site and twitter:creator meta tags
+export const SOCIAL_TWITTER_HANDLE = 'John_McD_TS';
