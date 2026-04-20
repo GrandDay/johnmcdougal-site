@@ -105,12 +105,10 @@ import HeaderLink from './HeaderLink.astro';
 	}
 	/* Show only the relevant icon per theme */
 	.theme-icon { display: none; }
-	:root:not([data-theme]),
-	[data-theme='light'] { }
-	[data-theme='light'] .theme-icon--light,
+	:global([data-theme='light']) .theme-icon--light,
 	:root:not([data-theme='dark']):not([data-theme='black']) .theme-icon--light { display: inline; }
-	[data-theme='dark'] .theme-icon--dark { display: inline; }
-	[data-theme='black'] .theme-icon--black { display: inline; }
+	:global([data-theme='dark']) .theme-icon--dark { display: inline; }
+	:global([data-theme='black']) .theme-icon--black { display: inline; }
 
 	@media (max-width: 600px) {
 		.nav-links { display: none; }
