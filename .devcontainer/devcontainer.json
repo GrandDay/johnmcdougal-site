@@ -9,12 +9,6 @@
       "onAutoForward": "openBrowser"
     }
   },
-  "remoteEnv": {
-    "SSH_AUTH_SOCK": "${localEnv:SSH_AUTH_SOCK}"
-  },
-  "mounts": [
-    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
-  ],
   "customizations": {
     "vscode": {
       "extensions": [
