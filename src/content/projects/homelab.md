@@ -33,6 +33,12 @@ every time it breaks.
 - Internal backups via Proxmox Backup Server; experimenting with PBS client on
   all non-cluster hosts
 - Physical network segmentation and firewall currently handled by Unifi
+- **Phred** -- local AI inference server. Runs LLMs locally, primarily for
+  agentic and workflow tasks
+- **Frosty** -- second local LLM host. Runs alongside Phred, handles overflow
+  and parallel workloads
+- Local workstation operating in concert with Phred and Frosty: the human-facing
+  layer of the local AI stack -- prompting, orchestration, output review, third inference host in the mix
 
 ## What I am figuring out
 
@@ -41,7 +47,7 @@ every time it breaks.
 - Building an internal walled garden within the cluster: virtual gateway devices
   at the border, isolated internal networks with high bandwidth, designed to
   scale cleanly across current and future physical and virtual infrastructure
-- Hardware consolidation: upgrading Phred (local AI server) and rethinking
-  placement as the stack matures
+- Expanding the local AI stack: Phred hardware refresh and deeper integration
+  between Phred, Frosty, and the workstation as a coordinated inference tier
 - Shifting firewall, routing, and logging responsibility into the virtualized
   layer over time
