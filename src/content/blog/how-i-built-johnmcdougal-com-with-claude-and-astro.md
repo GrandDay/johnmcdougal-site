@@ -5,6 +5,7 @@ pubDate: 2026-05-03
 tags: ["astro", "cloudflare", "ai", "building-in-public"]
 series: "How I built johnmcdougal.com"
 seriesPart: 1
+projectRef: "johnmcdougal-site"
 ---
 
 > **TL;DR:** I built this site with Claude as a collaborator, not a code generator -- here's what that distinction actually means in practice.

@@ -4,6 +4,7 @@ description: "DMARC aggregate reports are XML zip files emailed by mail servers 
 pubDate: 2026-05-04
 series: "How I built johnmcdougal.com"
 seriesPart: 6
+projectRef: "johnmcdougal-site"
 tags: ["email", "dmarc", "postmark", "security", "monitoring", "homelab"]
 ---
 

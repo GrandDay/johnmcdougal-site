@@ -12,9 +12,7 @@ CUE-Verse is the context layer of the homelab. It is the framework that
 gives the lab depth and linked memory -- the difference between a pile of
 running VMs and a system that means something.
 
-The name comes from "cue" as in something that serves a comparable purpose,
-and "verse" as in the whole interconnected stack of modern IT: projects,
-services, layers, and the knowledge that holds them together.
+The name comes from CUE-Lang, a Go schema validation language that changed the way I think about schemas, documents, and structured systems -- using the same language to define data, validate it, and generate configuration from it. The project took off before CUE-Lang was fully integrated into the stack, so the implementation lags the inspiration, but the name stuck (it's in too many places now to change). CUE-Verse is what that thinking grew into: the context layer that holds the whole lab together.
 
 ## Why it exists
 

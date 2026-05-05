@@ -5,6 +5,7 @@ pubDate: 2026-05-04
 tags: ["email", "cloudflare", "smtp2go", "dmarc", "security", "homelab"]
 series: "How I built johnmcdougal.com"
 seriesPart: 4
+projectRef: "johnmcdougal-site"
 ---
 
 > **TL;DR:** SPF proves you're allowed to send. DKIM proves the message wasn't changed. DMARC enforces what happens when either check fails. Here's how to add all three -- in the right order.

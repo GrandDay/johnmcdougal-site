@@ -5,6 +5,7 @@ pubDate: 2026-05-04
 tags: ["email", "cloudflare", "dmarc", "dns", "security", "homelab"]
 series: "How I built johnmcdougal.com"
 seriesPart: 5
+projectRef: "johnmcdougal-site"
 ---
 
 > **TL;DR:** A domain you never use for email can still be spoofed. Four DNS records fix it: null MX, SPF reject-all, DMARC reject, wildcard DKIM null. No key generation, no sending infrastructure.

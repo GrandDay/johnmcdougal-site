@@ -5,6 +5,7 @@ pubDate: 2026-05-03
 tags: ["cloudflare", "email", "smtp2go", "homelab", "self-hosted"]
 series: "How I built johnmcdougal.com"
 seriesPart: 2
+projectRef: "johnmcdougal-site"
 ---
 
 > **TL;DR:** Cloudflare Email Routing + SMTP2Go = free, real custom email on any domain you own -- and you can run the whole thing from inside Gmail.

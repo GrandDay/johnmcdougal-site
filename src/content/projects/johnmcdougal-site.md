@@ -31,16 +31,14 @@ understand it well enough.
 - Five parked domains (.co / .dev / .io / .tech / .online) all locked with null
   MX, SPF hard fail, DMARC reject, and wildcard DKIM null -- redirecting to
   the primary domain
-- Six published posts in the "How I built johnmcdougal.com" series documenting
-  all of the above
+- Thirteen published posts across three series: "How I built johnmcdougal.com" (6 parts), "Working with AI in 2026" (6 parts), and a standalone hello world
+- The "How I built" series is complete and documents the full site build, email stack, and analytics setup
 
 ## What I am figuring out
 
-- Project pages and their relationship to the blog series -- the site build
-  documentation lives in the blog; this page is the anchor for the series
 - A consulting landing page: whether that lives here as a section, or gets its
   own subdomain and identity
-- Long-term content architecture: the site build series is closing; next up is
-  the AI workflow and tools cluster
-- Whether "building in public" is still the right tagline, or if the framing
-  has evolved past it
+- How project pages relate to blog series -- this page is the anchor for the
+  "How I built" series; that pattern needs to be consistent across projects
+- C3B cluster next: the AI workflow series (C3A) is complete; the next
+  content cluster is in planning

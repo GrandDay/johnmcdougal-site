@@ -5,6 +5,7 @@ pubDate: 2026-05-03
 tags: ["posthog", "analytics", "astro", "cloudflare", "privacy"]
 series: "How I built johnmcdougal.com"
 seriesPart: 3
+projectRef: "johnmcdougal-site"
 ---
 
 > **TL;DR:** PostHog Cloud + a Cloudflare reverse proxy = analytics that bypass adblockers and blocklists -- but skip the wizard and read the docs first.
