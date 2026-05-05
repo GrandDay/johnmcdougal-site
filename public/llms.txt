@@ -15,6 +15,9 @@
 - [Do your parked domains need email authentication?](https://johnmcdougal.com/blog/parked-domain-email-authentication/): Part 5. Four DNS records to prevent spoofing from domains that never send email.
 - [How I read DMARC reports without reading DMARC reports](https://johnmcdougal.com/blog/dmarc-reporting-postmark-digest/): Part 6. Postmark DMARC Digests -- free weekly digest that parses aggregate XML reports into readable pass/fail summaries.
 
+### Series: Working with AI in 2026
+- [The Latent Space: The mental model that changed how I work with AI](https://johnmcdougal.com/blog/working-with-ai-the-latent-space/): Part 1. The latent space as a mental model -- why AI output is inconsistent, why prompts are navigation not instruction, and what changes when you understand the context window as a medium.
+
 ### Other posts
 - [Hello, World](https://johnmcdougal.com/blog/hello-world/): Introduction to the site.
 
