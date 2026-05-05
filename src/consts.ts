@@ -2,7 +2,7 @@
 // You can import this data from anywhere in your site by using the `import` keyword.
 
 export const SITE_TITLE = 'John McDougal';
-export const SITE_TAGLINE = 'Building in public.';
+export const SITE_TAGLINE = 'The work, documented.';
 export const SITE_DESCRIPTION =
 	'Sacramento-based IT Consultant, Homelabber, and chronic pattern-finder.';
 export const SITE_AUTHOR = 'John McDougal';
