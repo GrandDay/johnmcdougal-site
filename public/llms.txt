@@ -21,6 +21,7 @@
 - [Iteration as Method](https://johnmcdougal.com/blog/working-with-ai-iteration-as-method/): Part 3. The first output isn't the answer -- it's material. Generate, evaluate, refine as a deliberate cycle; how to read gaps, tell refinement from iteration, and build durable artifacts.
 - [The Prompt is a Draft](https://johnmcdougal.com/blog/working-with-ai-the-prompt-is-a-draft/): Part 4. The model navigates from your prompt, it doesn't execute it. Separating context from ask, specifying output shape, and revising before sending changes what comes back.
 - [Systems That Build Systems](https://johnmcdougal.com/blog/working-with-ai-systems-that-build-systems/): Part 5. The most useful thing AI changes isn't individual tasks -- it's the economics of building the systems that do the tasks. When scaffolding gets cheap enough, you build infrastructure you'd have skipped. That infrastructure compounds.
+- [The IT Guy Who Listens](https://johnmcdougal.com/blog/working-with-ai-the-it-guy-who-listens/): Part 6. AI changes the cost of execution. It doesn't change the cost of judgment. The person who keeps the diagnostic loop open, asks the question that reframes the problem, and knows what the system is actually for -- that's the human moat.
 
 ### Other posts
 - [Hello, World](https://johnmcdougal.com/blog/hello-world/): Introduction to the site.
