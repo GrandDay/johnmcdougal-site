@@ -8,9 +8,19 @@ import Header from '../components/Header.astro';
 
 type Props = CollectionEntry<'blog'>['data'] & { id: string };
 
-const { title, description, pubDate, updatedDate, heroImage, tags, id } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, series, seriesPart, id } = Astro.props;
 
 const allPosts = await getCollection('blog');
+
+// Series nav
+const seriesPosts = series
+  ? allPosts
+    .filter((p) => p.data.series === series)
+    .sort((a, b) => (a.data.seriesPart ?? 0) - (b.data.seriesPart ?? 0))
+  : [];
+const seriesPrev = seriesPart ? seriesPosts.find((p) => p.data.seriesPart === seriesPart - 1) : undefined;
+const seriesNext = seriesPart ? seriesPosts.find((p) => p.data.seriesPart === seriesPart + 1) : undefined;
+
 const related = allPosts
 .filter((p) => p.id !== id && p.data.tags.some((t) => tags.includes(t)))
 .sort((a, b) => {
@@ -98,6 +108,47 @@ border-top: 1px solid rgba(128,128,128,0.15);
 margin: 2em 0;
 }
 
+/* Series label */
+.series-label {
+font-size: 0.75rem;
+font-weight: 700;
+letter-spacing: 0.08em;
+text-transform: uppercase;
+color: var(--accent);
+margin: 0 0 0.4em;
+}
+
+/* Series nav */
+.series-nav {
+margin-top: 2.5em;
+padding-top: 1.5em;
+border-top: 1px solid rgba(128,128,128,0.15);
+display: flex;
+justify-content: space-between;
+gap: 1em;
+}
+.series-nav-item {
+display: flex;
+flex-direction: column;
+gap: 0.2em;
+max-width: 48%;
+}
+.series-nav-item.next { align-items: flex-end; text-align: right; }
+.series-nav-dir {
+font-size: 0.7rem;
+font-weight: 700;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(--text-muted);
+}
+.series-nav-link {
+font-size: 0.9rem;
+color: var(--text);
+text-decoration: none;
+transition: color 0.15s;
+}
+.series-nav-link:hover { color: var(--accent); }
+
 /* Post tags */
 .post-tags {
 display: flex;
@@ -169,6 +220,9 @@ border-radius: 999px;
 <div class="prose">
 <div class="title">
 <div class="date">
+{series && seriesPart && (
+<p class="series-label">{series} &mdash; Part {seriesPart}</p>
+)}
 <FormattedDate date={pubDate} />
 {updatedDate && (
 <div class="last-updated-on">
@@ -179,6 +233,22 @@ Last updated on <FormattedDate date={updatedDate} />
 <h1>{title}</h1>
 </div>
 <slot />
+{(seriesPrev || seriesNext) && (
+<div class="series-nav">
+  {seriesPrev ? (
+    <div class="series-nav-item prev">
+      <span class="series-nav-dir">&larr; Previous</span>
+      <a href={`/blog/${seriesPrev.id}`} class="series-nav-link">{seriesPrev.data.title}</a>
+    </div>
+  ) : <div />}
+  {seriesNext ? (
+    <div class="series-nav-item next">
+      <span class="series-nav-dir">Next &rarr;</span>
+      <a href={`/blog/${seriesNext.id}`} class="series-nav-link">{seriesNext.data.title}</a>
+    </div>
+  ) : <div />}
+</div>
+)}
 {tags.length > 0 && (
 <div class="post-tags">
 {tags.map((tag) => (

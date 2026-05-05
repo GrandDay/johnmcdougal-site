@@ -12,19 +12,14 @@ projectRef: ""      # slug of the linked project (e.g. "homelab", "cue-verse")
 
 > **TL;DR:** [One sentence. What is the point of this post?]
 
-*Part [N] of [Series Name]. [One sentence: what is the series about?]
-See the [project page](/projects/project-slug/).*
+*Part [N] of [Series Name]. [One sentence: what is the series about?]*
 
 [Hook -- 1-2 sentences that earn the read.]
 
-## [First section heading]
-
-[Body]
-
-## [Second section heading]
-
-[Body]
+[Body -- use `---` horizontal rules for section breaks, no `##` headers for essay-feel posts.]
 
 ---
 
 *[Landing point -- what is next in the series, or what you are still figuring out.]*
+
+<!-- Series nav (prev/next) is rendered automatically by BlogPost.astro from `series` + `seriesPart` frontmatter. No manual nav needed in post body. -->
