@@ -17,6 +17,7 @@
 
 ### Series: Working with AI in 2026
 - [The Latent Space: The mental model that changed how I work with AI](https://johnmcdougal.com/blog/working-with-ai-the-latent-space/): Part 1. The latent space as a mental model -- why AI output is inconsistent, why prompts are navigation not instruction, and what changes when you understand the context window as a medium.
+- [Context is the Interface](https://johnmcdougal.com/blog/working-with-ai-context-is-the-interface/): Part 2. The context window as active environment -- how to prime sessions deliberately, recognize context drift and debt, and make the reset decision without treating it as failure.
 
 ### Other posts
 - [Hello, World](https://johnmcdougal.com/blog/hello-world/): Introduction to the site.
