@@ -18,6 +18,11 @@ const project = Astro.props;
 const { Content } = await render(project);
 const { title, description, pubDate, updatedDate, status, repoUrl, liveUrl, tags } = project.data;
 
+const allPosts = await getCollection('blog');
+const linkedPosts = allPosts
+  .filter((post) => post.data.projectRef === project.id)
+  .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+
 const statusLabel = { active: "Active", wip: "In Progress", archived: "Archived" };
 const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gray))" };
 ---
@@ -132,6 +137,54 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
         margin: 2em 0;
       }
 
+      /* Linked posts */
+      .linked-posts {
+        margin-top: 3em;
+        padding-top: 1.5em;
+        border-top: 1px solid rgba(128,128,128,0.15);
+      }
+      .linked-posts-heading {
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin: 0 0 1em;
+      }
+      .linked-posts-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85em;
+      }
+      .linked-post-item a {
+        color: var(--text);
+        text-decoration: none;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15em;
+      }
+      .linked-post-item a:hover .linked-post-title { color: var(--accent); }
+      .linked-post-title {
+        font-size: 0.975rem;
+        font-weight: 600;
+        transition: color 0.15s;
+      }
+      .linked-post-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.5em;
+        font-size: 0.8rem;
+        color: var(--text-muted);
+      }
+      .linked-post-desc {
+        font-size: 0.875rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+      }
+
       /* Sources section — last h2 in the content gets a slightly different treatment */
       .content-body :global(h2:last-of-type) {
         font-size: 0.75rem;
@@ -186,6 +239,29 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
           )}
         </div>
         <div class="content-body"><Content /></div>
+        {linkedPosts.length > 0 && (
+          <section class="linked-posts">
+            <p class="linked-posts-heading">Posts about this project</p>
+            <ul class="linked-posts-list">
+              {linkedPosts.map((post) => (
+                <li class="linked-post-item">
+                  <a href={`/blog/${post.id}/`}>
+                    <span class="linked-post-title">{post.data.title}</span>
+                    <span class="linked-post-meta">
+                      <FormattedDate date={post.data.pubDate} />
+                      {post.data.series && post.data.seriesPart && (
+                        <span>&middot; Part {post.data.seriesPart}</span>
+                      )}
+                    </span>
+                    {post.data.description && (
+                      <span class="linked-post-desc">{post.data.description}</span>
+                    )}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
     </main>
     <Footer />
