@@ -1,0 +1,294 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Footer from '../components/Footer.astro';
+import Header from '../components/Header.astro';
+import { SITE_TITLE } from '../consts';
+---
+
+<!doctype html>
+<html lang="en">
+<head>
+  <BaseHead
+    title={`Graph — ${SITE_TITLE}`}
+    description="Visual map of site content — posts, projects, and tags as a connected graph."
+  />
+  <style>
+    /* Full-width layout overrides */
+    main {
+      max-width: 100% !important;
+      width: 100% !important;
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .graph-header {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 2rem 1rem 1rem;
+    }
+    .graph-header h1 { margin-bottom: 0.25rem; }
+    .graph-header p {
+      color: var(--text-muted);
+      margin: 0;
+      font-size: 1rem;
+    }
+    .legend {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem 1.25rem;
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .graph-container {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 56px - 200px);
+      min-height: 500px;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg-secondary);
+      overflow: hidden;
+    }
+    #graph-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    /* Loading spinner */
+    .spinner-wrap {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      pointer-events: none;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .spinner-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    /* Tooltip */
+    #graph-tooltip {
+      position: fixed;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.8rem;
+      color: var(--text);
+      pointer-events: none;
+      z-index: 999;
+      box-shadow: var(--shadow);
+      max-width: 240px;
+      display: none;
+      line-height: 1.4;
+    }
+    .graph-hint {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    @media (max-width: 720px) {
+      .graph-container { height: calc(100vh - 56px - 260px); min-height: 400px; }
+      .legend { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <Header />
+  <main>
+    <div class="graph-header">
+      <h1>Content graph</h1>
+      <p>Every post, project, and tag -- and how they connect. Click any node to navigate.</p>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-dot" style="background: #2dd4bf;"></span>
+        Post
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background: #f59e0b;"></span>
+        Project
+      </div>
+      <div class="legend-item">
+        <span class="legend-dot" style="background: #64748b;"></span>
+        Tag
+      </div>
+      <div class="legend-item">
+        <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
+          <line x1="0" y1="5" x2="28" y2="5" stroke="#2dd4bf" stroke-width="2.5" />
+        </svg>
+        projectRef link
+      </div>
+      <div class="legend-item">
+        <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
+          <line x1="0" y1="5" x2="28" y2="5" stroke="#64748b" stroke-width="1" stroke-dasharray="4 2" />
+        </svg>
+        shared tag
+      </div>
+    </div>
+
+    <div class="graph-container">
+      <svg id="graph-svg" aria-label="Content relationship graph"></svg>
+      <div class="spinner-wrap" id="spinner-wrap">
+        <div class="spinner"></div>
+        <span class="spinner-label">Mapping connections...</span>
+      </div>
+    </div>
+
+    <div class="graph-hint">
+      Scroll or pinch to zoom &middot; drag to pan &middot; drag nodes to reposition
+    </div>
+  </main>
+  <Footer />
+
+  <div id="graph-tooltip"></div>
+
+  <script type="module">
+    import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+
+    const resp = await fetch('/graph.json');
+    const data = await resp.json();
+
+    const container = document.getElementById('graph-svg').parentElement;
+    const svgEl = document.getElementById('graph-svg');
+    const tooltip = document.getElementById('graph-tooltip');
+    const spinnerWrap = document.getElementById('spinner-wrap');
+
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+
+    const svg = d3.select(svgEl)
+      .attr('viewBox', `0 0 ${width} ${height}`);
+
+    // Zoom + pan
+    const g = svg.append('g');
+    svg.call(
+      d3.zoom()
+        .scaleExtent([0.2, 4])
+        .on('zoom', (event) => g.attr('transform', event.transform))
+    );
+
+    const nodeRadius = (d) => d.type === 'project' ? 12 : d.type === 'post' ? 8 : 5;
+    const nodeColor = (d) => d.type === 'project' ? '#f59e0b' : d.type === 'post' ? '#2dd4bf' : '#64748b';
+
+    // Edges
+    const link = g.append('g')
+      .selectAll('line')
+      .data(data.edges)
+      .join('line')
+      .attr('stroke', (d) => d.type === 'projectRef' ? '#2dd4bf' : 'rgba(100,116,139,0.3)')
+      .attr('stroke-width', (d) => d.type === 'projectRef' ? 2.5 : 1)
+      .attr('stroke-dasharray', (d) => d.type === 'tag' ? '4 3' : null);
+
+    // Nodes
+    const node = g.append('g')
+      .selectAll('circle')
+      .data(data.nodes)
+      .join('circle')
+      .attr('r', nodeRadius)
+      .attr('fill', nodeColor)
+      .attr('stroke', (d) => d.type === 'post' || d.type === 'project' ? 'rgba(0,0,0,0.15)' : 'none')
+      .attr('stroke-width', 1)
+      .attr('cursor', 'pointer')
+      .call(
+        d3.drag()
+          .on('start', (event, d) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x; d.fy = d.y;
+          })
+          .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
+          .on('end', (event, d) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null; d.fy = null;
+          })
+      );
+
+    // Labels for post + project nodes only
+    const label = g.append('g')
+      .selectAll('text')
+      .data(data.nodes.filter((d) => d.type !== 'tag'))
+      .join('text')
+      .attr('font-size', '10px')
+      .attr('fill', '#94a3b8')
+      .attr('pointer-events', 'none')
+      .attr('dx', (d) => nodeRadius(d) + 4)
+      .attr('dy', '0.35em')
+      .text((d) => d.label.length > 32 ? d.label.slice(0, 31) + '\u2026' : d.label);
+
+    // Tooltip
+    node
+      .on('mouseover', (event, d) => {
+        tooltip.textContent = d.label;
+        tooltip.style.display = 'block';
+      })
+      .on('mousemove', (event) => {
+        tooltip.style.left = (event.clientX + 14) + 'px';
+        tooltip.style.top = (event.clientY - 10) + 'px';
+      })
+      .on('mouseout', () => { tooltip.style.display = 'none'; })
+      .on('click', (event, d) => {
+        if (d.url) window.location.href = d.url;
+      });
+
+    // Simulation
+    const simulation = d3.forceSimulation(data.nodes)
+      .force('link',
+        d3.forceLink(data.edges)
+          .id((d) => d.id)
+          .distance((d) => d.type === 'projectRef' ? 90 : 55)
+          .strength((d) => d.type === 'projectRef' ? 1 : 0.4)
+      )
+      .force('charge',
+        d3.forceManyBody()
+          .strength((d) => d.type === 'tag' ? -40 : d.type === 'project' ? -180 : -130)
+      )
+      .force('center', d3.forceCenter(width / 2, height / 2))
+      .force('collide', d3.forceCollide().radius((d) => nodeRadius(d) + 5))
+      .on('tick', () => {
+        link
+          .attr('x1', (d) => d.source.x)
+          .attr('y1', (d) => d.source.y)
+          .attr('x2', (d) => d.target.x)
+          .attr('y2', (d) => d.target.y);
+        node
+          .attr('cx', (d) => d.x)
+          .attr('cy', (d) => d.y);
+        label
+          .attr('x', (d) => d.x)
+          .attr('y', (d) => d.y);
+      })
+      .on('end', () => {
+        spinnerWrap.style.display = 'none';
+      });
+  </script>
+</body>
+</html>
