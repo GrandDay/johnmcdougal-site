@@ -1,114 +1,156 @@
 ---
-import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
-import { SITE_DESCRIPTION, SITE_TITLE } from '../../consts';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 
 const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+
+const tagMap = new Map<string, number>();
+posts.forEach((post) => {
+	post.data.tags.forEach((tag) => {
+		tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
+	});
+});
+const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
-		<style>
-			main {
-				width: 960px;
-			}
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				gap: 2rem;
-				list-style-type: none;
-				margin: 0;
-				padding: 0;
-			}
-			ul li {
-				width: calc(50% - 1rem);
-			}
-			ul li * {
-				text-decoration: none;
-				transition: 0.2s ease;
-			}
-			ul li:first-child {
-				width: 100%;
-				margin-bottom: 1rem;
-				text-align: center;
-			}
-			ul li:first-child img {
-				width: 100%;
-			}
-			ul li:first-child .title {
-				font-size: 2.369rem;
-			}
-			ul li img {
-				margin-bottom: 0.5rem;
-				border-radius: 12px;
-			}
-			ul li a {
-				display: block;
-			}
-			.title {
-				margin: 0;
-				color: rgb(var(--black));
-				line-height: 1;
-			}
-			.date {
-				margin: 0;
-				color: rgb(var(--gray));
-			}
-			ul li a:hover h4,
-			ul li a:hover .date {
-				color: rgb(var(--accent));
-			}
-			ul a:hover img {
-				box-shadow: var(--box-shadow);
-			}
-			@media (max-width: 720px) {
-				ul {
-					gap: 0.5em;
-				}
-				ul li {
-					width: 100%;
-					text-align: center;
-				}
-				ul li:first-child {
-					margin-bottom: 0;
-				}
-				ul li:first-child .title {
-					font-size: 1.563em;
-				}
-			}
-		</style>
+		<BaseHead title={`Writing — ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
 	</head>
 	<body>
 		<Header />
 		<main>
-			<section>
-				<ul>
-					{
-						posts.map((post) => (
-							<li>
-								<a href={`/blog/${post.id}/`}>
-									{post.data.heroImage && (
-										<Image width={720} height={360} src={post.data.heroImage} alt="" />
-									)}
-									<h4 class="title">{post.data.title}</h4>
-									<p class="date">
-										<FormattedDate date={post.data.pubDate} />
-									</p>
-								</a>
-							</li>
-						))
-					}
-				</ul>
-			</section>
+			<h1>Writing</h1>
+			<p class="lead">Essays, walkthroughs, and thinking out loud. Process over polish.</p>
+
+			{allTags.length > 0 && (
+				<div class="tag-bar">
+					{allTags.map(([tag]) => (
+						<a href={`/tags/${tag}`} class="tag">{tag}</a>
+					))}
+				</div>
+			)}
+
+			{posts.length === 0 && (
+				<p style="color: var(--text-muted)">Nothing published yet — something is always in the draft pile. Check back soon.</p>
+			)}
+
+			<ul class="post-list">
+				{posts.map((post) => (
+					<li>
+						<a href={`/blog/${post.id}/`} class="post-card">
+							<div class="post-header">
+								<h2>{post.data.title}</h2>
+								{post.data.series && post.data.seriesPart && (
+									<span class="series-badge">Part {post.data.seriesPart}</span>
+								)}
+							</div>
+							{post.data.description && (
+								<p class="post-desc">{post.data.description}</p>
+							)}
+							<div class="post-meta">
+								<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+								{post.data.tags.length > 0 && (
+									<div class="post-tags">
+										{post.data.tags.map((tag) => (
+											<span class="tag-label">{tag}</span>
+										))}
+									</div>
+								)}
+							</div>
+						</a>
+					</li>
+				))}
+			</ul>
 		</main>
 		<Footer />
 	</body>
 </html>
+
+<style>
+	h1 { margin-bottom: 0.25em; }
+	.lead {
+		color: var(--text-muted);
+		margin-bottom: 1.5em;
+		font-size: 1.05em;
+	}
+	.tag-bar {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5em;
+		margin-bottom: 2em;
+		padding-bottom: 1.5em;
+		border-bottom: 1px solid var(--border);
+	}
+	.post-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+	.post-card {
+		display: block;
+		padding: 1.25em 1.5em;
+		background: var(--bg-secondary);
+		text-decoration: none;
+		color: var(--text);
+		transition: background 0.15s ease;
+	}
+	.post-card:hover {
+		background: var(--bg);
+	}
+	.post-card:hover h2 {
+		color: var(--accent);
+	}
+	.post-header {
+		display: flex;
+		align-items: center;
+		gap: 0.75em;
+		margin-bottom: 0.25em;
+	}
+	h2 {
+		font-size: 1.1em;
+		margin: 0;
+		transition: color 0.15s ease;
+	}
+	.post-desc {
+		margin: 0 0 0.6em;
+		color: var(--text-muted);
+		font-size: 0.95em;
+	}
+	.post-meta {
+		display: flex;
+		align-items: center;
+		gap: 1em;
+		flex-wrap: wrap;
+	}
+	.date {
+		font-size: 0.8em;
+		color: var(--text-muted);
+	}
+	.post-tags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4em;
+	}
+	.tag-label {
+		font-size: 0.7em;
+		color: var(--text-muted);
+		background: var(--bg);
+		padding: 0.15em 0.5em;
+		border-radius: 999px;
+		border: 1px solid var(--border);
+	}
+</style>

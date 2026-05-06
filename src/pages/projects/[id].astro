@@ -28,7 +28,7 @@ const linkedPosts = allPosts
   });
 
 const statusLabel = { active: "Active", wip: "In Progress", archived: "Archived" };
-const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gray))" };
+const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-muted)" };
 ---
 
 <!doctype html>
@@ -49,7 +49,7 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
       }
       .back-link {
         font-size: 0.85rem;
-        color: rgb(var(--accent));
+        color: var(--accent);
         text-decoration: none;
         display: inline-block;
         margin-bottom: 1.25rem;
@@ -71,28 +71,19 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
         text-transform: uppercase;
         letter-spacing: 0.05em;
       }
-      .date { font-size: 0.85rem; color: rgb(var(--gray)); }
+      .date { font-size: 0.85rem; color: var(--text-muted); }
       h1 {
         margin: 0 0 0.5rem;
         font-size: clamp(1.5rem, 4vw, 2.25rem);
         line-height: 1.2;
       }
       .description {
-        color: rgb(var(--gray));
+        color: var(--text-muted);
         margin: 0 0 1.25rem;
         font-size: 1.05rem;
       }
       .external-links { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-      .external-links a {
-        font-size: 0.875rem;
-        color: rgb(var(--accent));
-        text-decoration: none;
-        border: 1px solid rgb(var(--accent));
-        padding: 0.3rem 0.75rem;
-        border-radius: 6px;
-        transition: background 0.15s, color 0.15s;
-      }
-      .external-links a:hover { background: rgb(var(--accent)); color: #000; }
+
       .tags { display: flex; flex-wrap: wrap; gap: 0.4em; margin-top: 1rem; }
 
       /* Prose content */
@@ -230,8 +221,8 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gr
           <p class="description">{description}</p>
           {(repoUrl || liveUrl) && (
             <nav class="external-links">
-              {repoUrl && <a href={repoUrl} target="_blank" rel="noopener">View repo &rarr;</a>}
-              {liveUrl && <a href={liveUrl} target="_blank" rel="noopener">Live site &rarr;</a>}
+              {repoUrl && <a href={repoUrl} target="_blank" rel="noopener" class="btn-outline">View repo &rarr;</a>}
+              {liveUrl && <a href={liveUrl} target="_blank" rel="noopener" class="btn-outline">Live site &rarr;</a>}
             </nav>
           )}
           {tags.length > 0 && (

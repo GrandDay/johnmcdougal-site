@@ -10,6 +10,14 @@ const projects = (await getCollection('projects')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
 
+const tagMap = new Map<string, number>();
+projects.forEach((project) => {
+	project.data.tags.forEach((tag) => {
+		tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
+	});
+});
+const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+
 const statusLabel = { active: 'Active', wip: 'WIP', archived: 'Archived' };
 const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--text-muted)' };
 ---
@@ -27,6 +35,14 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 				Things I'm building, experimenting with, or have documented along the way.
 				Process over polish — the WIPs are as much the point as the finished ones.
 			</p>
+
+			{allTags.length > 0 && (
+				<div class="tag-bar">
+					{allTags.map(([tag]) => (
+						<a href={`/tags/${tag}`} class="tag">{tag}</a>
+					))}
+				</div>
+			)}
 
 			{projects.length === 0 && (
 				<p style="color: var(--text-muted)">Projects coming soon. Watch this space.</p>
@@ -67,8 +83,16 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 	h1 { margin-bottom: 0.25em; }
 	.lead {
 		color: var(--text-muted);
-		margin-bottom: 2em;
+		margin-bottom: 1.5em;
 		font-size: 1.05em;
+	}
+	.tag-bar {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5em;
+		margin-bottom: 2em;
+		padding-bottom: 1.5em;
+		border-bottom: 1px solid var(--border);
 	}
 	.project-list {
 		list-style: none;

@@ -11,7 +11,7 @@ import { SITE_AUTHOR, SITE_TITLE, SOCIAL_GITHUB, SOCIAL_LINKEDIN, CONTACT_EMAIL 
 <BaseHead title={`About -- ${SITE_TITLE}`} description={`About ${SITE_AUTHOR} -- Sacramento-based IT consultant, homelabber, and chronic pattern-finder.`} />
 <style>
 .about {
-width: 680px;
+width: 740px;
 max-width: calc(100% - 2em);
 margin: 0 auto;
 padding: 3em 1em 2em;
@@ -19,8 +19,8 @@ padding: 3em 1em 2em;
 .opener {
 font-size: 1.05rem;
 font-style: italic;
-color: rgb(var(--gray));
-border-left: 3px solid rgb(var(--accent));
+color: var(--text-muted);
+border-left: 3px solid var(--accent);
 padding-left: 1rem;
 margin: 0 0 2.5rem;
 line-height: 1.6;
@@ -30,7 +30,7 @@ font-size: clamp(1.75rem, 4vw, 2.25rem);
 margin: 0 0 0.5rem;
 }
 .tagline {
-color: rgb(var(--gray));
+color: var(--text-muted);
 font-size: 1.05rem;
 margin: 0 0 2.5rem;
 }
@@ -42,28 +42,28 @@ font-size: 0.75rem;
 font-weight: 700;
 letter-spacing: 0.1em;
 text-transform: uppercase;
-color: rgb(var(--accent));
+color: var(--accent);
 margin: 0 0 0.75rem;
 }
 p {
 line-height: 1.75;
 margin: 0 0 1rem;
-color: rgb(var(--gray-dark));
+color: var(--text);
 }
 .philosophy {
 font-size: 1.05rem;
 font-weight: 500;
-color: rgb(var(--gray-dark));
+color: var(--text);
 margin: 0 0 1rem;
 }
 .sculptor {
 font-style: italic;
-color: rgb(var(--gray));
+color: var(--text-muted);
 }
 ul {
 margin: 0;
 padding: 0 0 0 1.25rem;
-color: rgb(var(--gray-dark));
+color: var(--text);
 line-height: 1.9;
 }
 .connect-links {
@@ -71,20 +71,6 @@ display: flex;
 gap: 1rem;
 flex-wrap: wrap;
 margin-top: 0.5rem;
-}
-.connect-links a {
-color: rgb(var(--accent));
-text-decoration: none;
-border: 1px solid rgb(var(--accent));
-padding: 0.35rem 0.85rem;
-border-radius: 6px;
-font-size: 0.925rem;
-font-weight: 500;
-transition: background 0.15s, color 0.15s;
-}
-.connect-links a:hover {
-background: rgb(var(--accent));
-color: #000;
 }
 hr {
 border: none;
@@ -195,9 +181,9 @@ Less a git tree, more a manzanita -- fire-tested, slow-growing. Still branching.
 <div class="section">
 <p class="section-title">Find me</p>
 <nav class="connect-links">
-<a href={SOCIAL_GITHUB} target="_blank" rel="noopener">GitHub</a>
-<a href={SOCIAL_LINKEDIN} target="_blank" rel="noopener">LinkedIn</a>
-<a href={`mailto:${CONTACT_EMAIL}`}>Email</a>
+<a href={SOCIAL_GITHUB} target="_blank" rel="noopener" class="btn-outline">GitHub</a>
+<a href={SOCIAL_LINKEDIN} target="_blank" rel="noopener" class="btn-outline">LinkedIn</a>
+<a href={`mailto:${CONTACT_EMAIL}`} class="btn-outline">Email</a>
 </nav>
 </div>
 </div>
