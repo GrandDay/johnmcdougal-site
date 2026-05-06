@@ -27,7 +27,7 @@ const tagMap = new Map<string, number>();
     tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
   });
 });
-const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+const allTags = [...tagMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 ---
 
 <!doctype html>
@@ -63,21 +63,29 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 /* Tag bar */
 .tag-bar {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5em;
   margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
 }
+.tag-bar::-webkit-scrollbar { height: 4px; }
+.tag-bar::-webkit-scrollbar-track { background: transparent; }
+.tag-bar::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 2px;
+}
+.tag-bar .tag { flex-shrink: 0; }
 @media (max-width: 720px) {
   .tag-bar {
-    flex-wrap: nowrap;
-    overflow-x: auto;
     padding-bottom: 1rem;
     scrollbar-width: none;
   }
   .tag-bar::-webkit-scrollbar { display: none; }
-  .tag-bar .tag { flex-shrink: 0; }
 }
 
 /* Portal grid */
@@ -219,4 +227,16 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 </main>
 <Footer />
 </body>
+<script>
+(function () {
+  const bar = document.querySelector<HTMLElement>('.tag-bar');
+  if (!bar) return;
+  bar.addEventListener('wheel', (e) => {
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      bar.scrollLeft += e.deltaY;
+    }
+  }, { passive: false });
+})();
+</script>
 </html>
