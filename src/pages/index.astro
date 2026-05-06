@@ -6,14 +6,28 @@ import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { SITE_AUTHOR, SITE_DESCRIPTION, SITE_TAGLINE, SITE_TITLE } from '../consts';
 
-const recentPosts = (await getCollection('blog'))
-.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-.slice(0, 3);
+const allPosts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+const latestPost = allPosts[0];
 
-const featuredProjects = (await getCollection('projects'))
-.filter((p) => p.data.status === 'active' || p.data.status === 'wip')
-.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf())
-.slice(0, 3);
+const allProjects = await getCollection('projects');
+const latestProject = [...allProjects].sort((a, b) => {
+  const aDate = (a.data.updatedDate ?? a.data.pubDate).valueOf();
+  const bDate = (b.data.updatedDate ?? b.data.pubDate).valueOf();
+  return bDate - aDate;
+})[0];
+const activeProjectCount = allProjects.filter(
+  (p) => p.data.status === 'active' || p.data.status === 'wip'
+).length;
+
+const tagMap = new Map<string, number>();
+[...allPosts, ...allProjects].forEach((item) => {
+  item.data.tags.forEach((tag) => {
+    tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
+  });
+});
+const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 ---
 
 <!doctype html>
@@ -22,182 +36,186 @@ const featuredProjects = (await getCollection('projects'))
 <BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
 <style>
 .hero {
-padding: 4rem 0 2.5rem;
-border-bottom: 1px solid var(--color-border, rgba(128,128,128,0.2));
-margin-bottom: 3rem;
+  padding: 4rem 0 2.5rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem;
 }
 .hero-name {
-font-size: clamp(2rem, 5vw, 3rem);
-font-weight: 700;
-margin: 0 0 0.2rem;
-line-height: 1.1;
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  margin: 0 0 0.2rem;
+  line-height: 1.1;
 }
 .hero-tagline {
-font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-color: rgb(var(--accent));
-font-weight: 600;
-margin: 0 0 0.9rem;
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  color: var(--accent);
+  font-weight: 600;
+  margin: 0 0 0.6rem;
 }
 .hero-description {
-font-size: 1.05rem;
-color: rgb(var(--gray));
-max-width: 55ch;
-margin: 0 0 1.5rem;
-line-height: 1.6;
-}
-.hero-links {
-display: flex;
-gap: 0.75rem;
-flex-wrap: wrap;
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 55ch;
+  margin: 0;
+  line-height: 1.6;
 }
 
-.section {
-margin-bottom: 3.5rem;
+/* Tag bar */
+.tag-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5em;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
-.section-header {
-display: flex;
-align-items: baseline;
-justify-content: space-between;
-margin-bottom: 1.1rem;
-padding-bottom: 0.5rem;
-border-bottom: 1px solid rgba(128,128,128,0.15);
+@media (max-width: 720px) {
+  .tag-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scrollbar-width: none;
+  }
+  .tag-bar::-webkit-scrollbar { display: none; }
+  .tag-bar .tag { flex-shrink: 0; }
 }
-.section-label {
-font-size: 0.75rem;
-font-weight: 700;
-letter-spacing: 0.1em;
-text-transform: uppercase;
-color: var(--text-muted);
-margin: 0;
+
+/* Portal grid */
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 3rem;
 }
-.section-header a {
-font-size: 0.85rem;
-color: var(--accent);
-text-decoration: none;
+@media (max-width: 720px) {
+  .portal-grid { grid-template-columns: 1fr; }
 }
-.section-header a:hover { text-decoration: underline; }
-.post-list {
-list-style: none;
-margin: 0;
-padding: 0;
-display: flex;
-flex-direction: column;
-gap: 0.1rem;
+.portal-tile {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1.4rem 1.5rem;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--bg-secondary);
+  transition: border-color 0.15s, background 0.15s;
 }
-.post-item a {
-display: flex;
-justify-content: space-between;
-align-items: baseline;
-gap: 1rem;
-text-decoration: none;
-color: var(--text);
-padding: 0.6rem 0;
-transition: color 0.15s;
+.portal-tile:hover {
+  border-color: var(--accent);
+  background: var(--bg);
 }
-.post-item a:hover { color: var(--accent); }
-.post-title { font-weight: 500; }
-.post-date {
-font-size: 0.82rem;
-color: var(--text-muted);
-white-space: nowrap;
-flex-shrink: 0;
+.portal-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.35rem;
 }
-.empty-state {
-color: var(--text-muted);
-font-size: 0.95rem;
-padding: 0.5rem 0;
+.portal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.3rem;
+  transition: color 0.15s;
 }
-.project-grid {
-display: grid;
-grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-gap: 1rem;
+.portal-tile:hover .portal-title { color: var(--accent); }
+.portal-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  flex: 1;
 }
-.project-card {
-border: 1px solid rgba(128,128,128,0.2);
-border-radius: 8px;
-padding: 1.1rem 1.25rem;
-text-decoration: none;
-color: var(--text);
-display: block;
-transition: border-color 0.15s;
+.portal-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1rem 0 0.75rem;
 }
-.project-card:hover { border-color: rgb(var(--accent)); }
-.project-card-status {
-font-size: 0.68rem;
-font-weight: 700;
-text-transform: uppercase;
-letter-spacing: 0.06em;
-margin-bottom: 0.4rem;
+.portal-recency-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.2rem;
 }
-.status-active { color: #22c55e; }
-.status-wip { color: #f59e0b; }
-.project-card-title {
-font-weight: 600;
-margin: 0 0 0.35rem;
-font-size: 0.975rem;
+.portal-recency-title {
+  font-size: 0.875rem;
+  color: var(--text);
+  display: block;
+  line-height: 1.4;
+  margin-bottom: 0.15rem;
 }
-.project-card-desc {
-font-size: 0.85rem;
-color: var(--text-muted);
-margin: 0;
-line-height: 1.5;
+.portal-recency-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  display: block;
+}
+.portal-cta {
+  font-size: 0.82rem;
+  color: var(--accent);
+  margin-top: 1rem;
+  display: block;
 }
 </style>
 </head>
 <body>
 <Header />
 <main>
-<section class="hero">
-<h1 class="hero-name">{SITE_AUTHOR}</h1>
-<p class="hero-tagline">{SITE_TAGLINE}</p>
-<p class="hero-description">{SITE_DESCRIPTION}</p>
-<nav class="hero-links">
-<a href="/about" class="btn-outline">About me</a>
-<a href="/blog" class="btn-outline">Writing</a>
-<a href="/projects" class="btn-outline">Projects</a>
-</nav>
-</section>
+  <section class="hero">
+    <h1 class="hero-name">{SITE_AUTHOR}</h1>
+    <p class="hero-tagline">{SITE_TAGLINE}</p>
+    <p class="hero-description">{SITE_DESCRIPTION}</p>
+  </section>
 
-<section class="section">
-<div class="section-header">
-<p class="section-label">Recent writing</p>
-{recentPosts.length > 0 && <a href="/blog">All posts &rarr;</a>}
-</div>
-{recentPosts.length > 0 ? (
-<ul class="post-list">
-{recentPosts.map((post) => (
-<li class="post-item">
-<a href={`/blog/${post.id}/`}>
-<span class="post-title">{post.data.title}</span>
-<span class="post-date"><FormattedDate date={post.data.pubDate} /></span>
-</a>
-</li>
-))}
-</ul>
-) : (
-<p class="empty-state">Nothing published yet — something is always in the draft pile. Check back soon.</p>
-)}
-</section>
+  {allTags.length > 0 && (
+    <div class="tag-bar">
+      {allTags.map(([tag]) => (
+        <a href={`/tags/${tag}`} class="tag">{tag}</a>
+      ))}
+    </div>
+  )}
 
-{featuredProjects.length > 0 && (
-<section class="section">
-<div class="section-header">
-<p class="section-label">Projects</p>
-<a href="/projects">All projects &rarr;</a>
-</div>
-<div class="project-grid">
-{featuredProjects.map((project) => (
-<a class="project-card" href={`/projects/${project.id}/`}>
-<div class={`project-card-status status-${project.data.status}`}>
-{project.data.status === 'wip' ? 'In progress' : project.data.status}
-</div>
-<p class="project-card-title">{project.data.title}</p>
-<p class="project-card-desc">{project.data.description}</p>
-</a>
-))}
-</div>
-</section>
-)}
+  <div class="portal-grid">
+    <a href="/blog" class="portal-tile">
+      <div class="portal-label">Writing</div>
+      <div class="portal-title">{allPosts.length} post{allPosts.length !== 1 ? 's' : ''}</div>
+      <div class="portal-subtitle">Essays, walkthroughs, and thinking out loud.</div>
+      {latestPost && (
+        <>
+          <hr class="portal-divider" />
+          <span class="portal-recency-label">Latest</span>
+          <span class="portal-recency-title">{latestPost.data.title}</span>
+          <span class="portal-recency-date"><FormattedDate date={latestPost.data.pubDate} /></span>
+        </>
+      )}
+      <span class="portal-cta">Browse all &rarr;</span>
+    </a>
+
+    <a href="/projects" class="portal-tile">
+      <div class="portal-label">Projects</div>
+      <div class="portal-title">{activeProjectCount} active</div>
+      <div class="portal-subtitle">Things in progress, things documented, things half-broken.</div>
+      {latestProject && (
+        <>
+          <hr class="portal-divider" />
+          <span class="portal-recency-label">Last updated</span>
+          <span class="portal-recency-title">{latestProject.data.title}</span>
+          <span class="portal-recency-date"><FormattedDate date={latestProject.data.updatedDate ?? latestProject.data.pubDate} /></span>
+        </>
+      )}
+      <span class="portal-cta">Browse all &rarr;</span>
+    </a>
+
+    <a href="/about" class="portal-tile">
+      <div class="portal-label">About</div>
+      <div class="portal-title">{SITE_AUTHOR}</div>
+      <div class="portal-subtitle">Sacramento-based IT consultant, homelabber, and chronic pattern-finder.</div>
+      <span class="portal-cta">Read more &rarr;</span>
+    </a>
+  </div>
 </main>
 <Footer />
 </body>
