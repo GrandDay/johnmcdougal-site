@@ -264,12 +264,19 @@ Last updated on <FormattedDate date={updatedDate} />
 <li>
 <a href={`/blog/${post.id}`} class="related-link">
 <span class="related-title">{post.data.title}</span>
+<span class="related-meta">
+<span style="font-size: 0.8rem; color: var(--text-muted);">
+<FormattedDate date={post.data.pubDate} />
+</span>
+{post.data.tags.filter((t) => tags.includes(t)).length > 0 && (
 <span class="related-shared-tags">
 {post.data.tags
 .filter((t) => tags.includes(t))
 .map((t) => (
 <span class="related-tag">{t}</span>
 ))}
+</span>
+)}
 </span>
 </a>
 </li>

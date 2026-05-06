@@ -21,7 +21,11 @@ const { title, description, pubDate, updatedDate, status, repoUrl, liveUrl, tags
 const allPosts = await getCollection('blog');
 const linkedPosts = allPosts
   .filter((post) => post.data.projectRef === project.id)
-  .sort((a, b) => a.data.pubDate.valueOf() - b.data.pubDate.valueOf());
+  .sort((a, b) => {
+    const dateDiff = a.data.pubDate.valueOf() - b.data.pubDate.valueOf();
+    if (dateDiff !== 0) return dateDiff;
+    return (a.data.seriesPart ?? 0) - (b.data.seriesPart ?? 0);
+  });
 
 const statusLabel = { active: "Active", wip: "In Progress", archived: "Archived" };
 const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "rgb(var(--gray))" };
