@@ -24,16 +24,37 @@ import HeaderLink from './HeaderLink.astro';
 					<path fill="currentColor" d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"/>
 				</svg>
 			</a>
-			<button
-				class="theme-toggle"
-				onclick="window.__cycleTheme()"
-				aria-label="Toggle theme"
-				title="Cycle theme: light → oled → dark"
-			>
-				<span class="theme-icon theme-icon--light">☀<span class="theme-label">light</span></span>
-				<span class="theme-icon theme-icon--dark">☽<span class="theme-label">dark</span></span>
-				<span class="theme-icon theme-icon--black">◉<span class="theme-label">oled</span></span>
-			</button>
+			<div class="theme-picker" id="theme-picker">
+				<button
+					class="theme-trigger"
+					id="theme-trigger"
+					aria-haspopup="listbox"
+					aria-expanded="false"
+					aria-label="Select theme"
+				>
+					<span class="theme-icon theme-icon--light">☀<span class="theme-label">light</span></span>
+					<span class="theme-icon theme-icon--dark">☽<span class="theme-label">dark</span></span>
+					<span class="theme-icon theme-icon--black">◉<span class="theme-label">oled</span></span>
+					<span class="theme-caret" aria-hidden="true">▾</span>
+				</button>
+				<ul
+					class="theme-dropdown"
+					id="theme-dropdown"
+					role="listbox"
+					aria-label="Select theme"
+					tabindex="-1"
+				>
+					<li role="option" data-theme-value="light" tabindex="-1">
+						<span class="option-icon">☀</span><span class="option-label">light</span>
+					</li>
+					<li role="option" data-theme-value="black" tabindex="-1">
+						<span class="option-icon">◉</span><span class="option-label">oled</span>
+					</li>
+					<li role="option" data-theme-value="dark" tabindex="-1">
+						<span class="option-icon">☽</span><span class="option-label">dark</span>
+					</li>
+				</ul>
+			</div>
 		</div>
 	</nav>
 </header>
@@ -87,7 +108,10 @@ import HeaderLink from './HeaderLink.astro';
 	.nav-right a:hover {
 		color: var(--accent);
 	}
-	.theme-toggle {
+	.theme-picker {
+		position: relative;
+	}
+	.theme-trigger {
 		background: none;
 		border: 1px solid var(--accent);
 		border-radius: 6px;
@@ -96,15 +120,25 @@ import HeaderLink from './HeaderLink.astro';
 		font-size: 1em;
 		color: var(--accent);
 		opacity: 0.75;
-		display: flex;
+		display: inline-flex;
 		align-items: center;
+		gap: 0.25em;
 		min-width: 4.5em;
 		justify-content: center;
 		transition: opacity 0.15s ease, background 0.15s ease;
 	}
-	.theme-toggle:hover {
+	.theme-trigger:hover,
+	.theme-picker.open .theme-trigger {
 		opacity: 1;
 		background: var(--accent-glow);
+	}
+	.theme-caret {
+		font-size: 0.65em;
+		line-height: 1;
+		transition: transform 0.15s ease;
+	}
+	.theme-picker.open .theme-caret {
+		transform: rotate(180deg);
 	}
 	/* Show only the relevant icon+label per theme */
 	.theme-icon { display: none; }
@@ -113,8 +147,146 @@ import HeaderLink from './HeaderLink.astro';
 	:global([data-theme='dark']) .theme-icon--dark { display: inline-flex; align-items: center; gap: 0.3em; }
 	:global([data-theme='black']) .theme-icon--black { display: inline-flex; align-items: center; gap: 0.3em; }
 	.theme-label { font-size: 0.8em; letter-spacing: 0.03em; }
+	/* Dropdown */
+	.theme-dropdown {
+		display: none;
+		position: absolute;
+		top: calc(100% + 6px);
+		right: 0;
+		margin: 0;
+		padding: 0.25em 0;
+		list-style: none;
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		box-shadow: 0 4px 12px var(--shadow);
+		min-width: 7em;
+		z-index: 200;
+	}
+	.theme-picker.open .theme-dropdown {
+		display: block;
+	}
+	.theme-dropdown li {
+		display: flex;
+		align-items: center;
+		gap: 0.5em;
+		padding: 0.4em 0.75em;
+		cursor: pointer;
+		font-size: 0.9em;
+		color: var(--text);
+		transition: background 0.1s ease, color 0.1s ease;
+		outline: none;
+	}
+	.theme-dropdown li:hover,
+	.theme-dropdown li:focus {
+		background: var(--accent-glow);
+		color: var(--accent);
+	}
+	.theme-dropdown li[aria-selected='true'] {
+		color: var(--accent);
+		font-weight: 600;
+	}
+	.option-icon {
+		flex-shrink: 0;
+	}
 
 	@media (max-width: 600px) {
 		.nav-links { display: none; }
 	}
 </style>
+
+<script>
+(function () {
+	const picker = document.getElementById('theme-picker');
+	const trigger = document.getElementById('theme-trigger');
+	const dropdown = document.getElementById('theme-dropdown');
+	if (!picker || !trigger || !dropdown) return;
+
+	const options = Array.from(dropdown.querySelectorAll<HTMLElement>('li[role="option"]'));
+
+	function currentTheme(): string {
+		return document.documentElement.getAttribute('data-theme') || 'light';
+	}
+
+	function updateSelected(theme: string) {
+		options.forEach(opt => {
+			opt.setAttribute('aria-selected', opt.dataset.themeValue === theme ? 'true' : 'false');
+		});
+	}
+
+	function open() {
+		picker.classList.add('open');
+		trigger.setAttribute('aria-expanded', 'true');
+		updateSelected(currentTheme());
+		// Focus the currently active option
+		const active = options.find(o => o.dataset.themeValue === currentTheme()) || options[0];
+		active.focus();
+	}
+
+	function close(returnFocus = true) {
+		picker.classList.remove('open');
+		trigger.setAttribute('aria-expanded', 'false');
+		if (returnFocus) trigger.focus();
+	}
+
+	function selectTheme(theme: string) {
+		window.__setTheme(theme);
+		updateSelected(theme);
+		close();
+	}
+
+	// Initialize aria-selected on load
+	updateSelected(currentTheme());
+
+	// Trigger click: toggle open/close
+	trigger.addEventListener('click', (e) => {
+		e.stopPropagation();
+		picker.classList.contains('open') ? close() : open();
+	});
+
+	// Option click
+	options.forEach(opt => {
+		opt.addEventListener('click', () => {
+			const val = opt.dataset.themeValue;
+			if (val) selectTheme(val);
+		});
+	});
+
+	// Keyboard nav inside dropdown
+	dropdown.addEventListener('keydown', (e) => {
+		const focused = document.activeElement as HTMLElement;
+		const idx = options.indexOf(focused);
+
+		if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			options[(idx + 1) % options.length].focus();
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			options[(idx - 1 + options.length) % options.length].focus();
+		} else if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			const val = focused.dataset?.themeValue;
+			if (val) selectTheme(val);
+		} else if (e.key === 'Escape' || e.key === 'Tab') {
+			close();
+		}
+	});
+
+	// Trigger keyboard: open on Enter/Space/ArrowDown
+	trigger.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+			e.preventDefault();
+			if (!picker.classList.contains('open')) open();
+		} else if (e.key === 'Escape') {
+			close();
+		}
+	});
+
+	// Close on outside click
+	document.addEventListener('click', (e) => {
+		if (picker.classList.contains('open') && !picker.contains(e.target as Node)) {
+			close(false);
+		}
+	});
+})();
+</script>
