@@ -28,11 +28,11 @@ import HeaderLink from './HeaderLink.astro';
 				class="theme-toggle"
 				onclick="window.__cycleTheme()"
 				aria-label="Toggle theme"
-				title="Cycle theme: light → dark → black"
+				title="Cycle theme: light → oled → dark"
 			>
-				<span class="theme-icon theme-icon--light">☀</span>
-				<span class="theme-icon theme-icon--dark">☽</span>
-				<span class="theme-icon theme-icon--black">◉</span>
+				<span class="theme-icon theme-icon--light">☀<span class="theme-label">light</span></span>
+				<span class="theme-icon theme-icon--dark">☽<span class="theme-label">dark</span></span>
+				<span class="theme-icon theme-icon--black">◉<span class="theme-label">oled</span></span>
 			</button>
 		</div>
 	</nav>
@@ -98,18 +98,21 @@ import HeaderLink from './HeaderLink.astro';
 		opacity: 0.75;
 		display: flex;
 		align-items: center;
+		min-width: 4.5em;
+		justify-content: center;
 		transition: opacity 0.15s ease, background 0.15s ease;
 	}
 	.theme-toggle:hover {
 		opacity: 1;
 		background: var(--accent-glow);
 	}
-	/* Show only the relevant icon per theme */
+	/* Show only the relevant icon+label per theme */
 	.theme-icon { display: none; }
 	:global([data-theme='light']) .theme-icon--light,
-	:root:not([data-theme='dark']):not([data-theme='black']) .theme-icon--light { display: inline; }
-	:global([data-theme='dark']) .theme-icon--dark { display: inline; }
-	:global([data-theme='black']) .theme-icon--black { display: inline; }
+	:root:not([data-theme='dark']):not([data-theme='black']) .theme-icon--light { display: inline-flex; align-items: center; gap: 0.3em; }
+	:global([data-theme='dark']) .theme-icon--dark { display: inline-flex; align-items: center; gap: 0.3em; }
+	:global([data-theme='black']) .theme-icon--black { display: inline-flex; align-items: center; gap: 0.3em; }
+	.theme-label { font-size: 0.8em; letter-spacing: 0.03em; }
 
 	@media (max-width: 600px) {
 		.nav-links { display: none; }
