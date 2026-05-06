@@ -39,6 +39,9 @@ All blog posts are available as raw markdown at `/blog/[slug].md` alongside thei
 ## Tags
 - [All tags](https://johnmcdougal.com/tags/): Browse all content by topic.
 
+## Graph
+- [Content graph](https://johnmcdougal.com/graph/): Interactive force-directed graph of all posts, projects, and tags. Nodes link to content; edges show shared tags (dashed) and project relationships (solid). D3-rendered, click-to-navigate.
+
 ## RSS
 - [RSS Feed](https://johnmcdougal.com/rss.xml): Subscribe to new posts.
 
