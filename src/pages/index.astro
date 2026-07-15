@@ -4,239 +4,395 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
-import { SITE_AUTHOR, SITE_DESCRIPTION, SITE_TAGLINE, SITE_TITLE } from '../consts';
+import {
+	CONTACT_EMAIL,
+	SITE_AUTHOR,
+	SOCIAL_GITHUB,
+	SOCIAL_LINKEDIN,
+} from '../consts';
+
+const homepageTitle = `${SITE_AUTHOR} | Infrastructure Engineer & Technical Consultant`;
+const homepageDescription =
+	'Customer-focused systems professional working across Linux, virtualization, networking, storage, automation, and AI infrastructure.';
 
 const allPosts = (await getCollection('blog')).sort(
-  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
-const latestPost = allPosts[0];
+const recentPosts = allPosts.slice(0, 3);
 
 const allProjects = await getCollection('projects');
-const latestProject = [...allProjects].sort((a, b) => {
-  const aDate = (a.data.updatedDate ?? a.data.pubDate).valueOf();
-  const bDate = (b.data.updatedDate ?? b.data.pubDate).valueOf();
-  return bDate - aDate;
-})[0];
-const activeProjectCount = allProjects.filter(
-  (p) => p.data.status === 'active' || p.data.status === 'wip'
-).length;
+const projectById = new Map(allProjects.map((project) => [project.id, project]));
+const featuredProjectSummaries = [
+	{
+		id: 'homelab',
+		evidence: 'Operational infrastructure',
+		summary:
+			'An active lab environment for virtualization, storage, networking, backup, self-hosting, and local AI infrastructure practice.',
+	},
+	{
+		id: 'cue-verse',
+		evidence: 'WIP documentation system',
+		summary:
+			'A systems-design and documentation layer for keeping lab decisions, deployment notes, and operational context understandable.',
+	},
+	{
+		id: 'aeon-desktop',
+		evidence: 'Linux workstation practice',
+		summary:
+			'Immutable Linux and Distrobox experimentation focused on reproducible workstation tooling and daily operating workflows.',
+	},
+	{
+		id: 'johnmcdougal-site',
+		evidence: 'Public documentation platform',
+		summary:
+			'The Astro site that publishes the work, its supporting technical notes, and the operational trail behind the build.',
+	},
+];
+const featuredProjects = featuredProjectSummaries
+	.flatMap((item) => {
+		const project = projectById.get(item.id);
+		return project ? [{ ...item, project }] : [];
+	});
+
+const proofItems = [
+	'100+ managed-services client environments',
+	'150+ physical and virtual servers installed, configured, maintained, and troubleshot',
+	'40–80+ weekly support requests resolved while advancing infrastructure work',
+];
 
 const tagMap = new Map<string, number>();
 [...allPosts, ...allProjects].forEach((item) => {
-  item.data.tags.forEach((tag) => {
-    tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
-  });
+	item.data.tags.forEach((tag) => {
+		tagMap.set(tag, (tagMap.get(tag) ?? 0) + 1);
+	});
 });
 const allTags = [...tagMap.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+
+const statusLabel = { active: 'Active', wip: 'WIP', archived: 'Archived' };
 ---
 
 <!doctype html>
 <html lang="en">
 <head>
-<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+<BaseHead title={homepageTitle} description={homepageDescription} />
 <style>
 .hero {
-  padding: 4rem 0 2.5rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 2rem;
+	padding: 4rem 0 2.5rem;
+	border-bottom: 1px solid var(--border);
 }
-.hero-name {
-  font-size: clamp(2rem, 5vw, 3rem);
-  font-weight: 700;
-  margin: 0 0 0.2rem;
-  line-height: 1.1;
+.eyebrow {
+	margin: 0 0 0.75rem;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--accent);
 }
-.hero-tagline {
-  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
-  color: var(--accent);
-  font-weight: 600;
-  margin: 0 0 0.6rem;
+.hero h1 {
+	font-size: clamp(2.2rem, 6vw, 3.6rem);
+	line-height: 1.05;
+	margin-bottom: 0.85rem;
 }
-.hero-description {
-  font-size: 1.05rem;
-  color: var(--text-muted);
-  max-width: 55ch;
-  margin: 0;
-  line-height: 1.6;
+.hero-lead {
+	font-size: clamp(1.1rem, 2.2vw, 1.35rem);
+	line-height: 1.5;
+	color: var(--text);
+	max-width: 58ch;
+	margin: 0 0 0.85rem;
 }
-
-/* Tag bar */
+.hero-value {
+	font-size: 1rem;
+	line-height: 1.6;
+	color: var(--text-muted);
+	max-width: 62ch;
+	margin: 0;
+}
+.hero-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem;
+	margin-top: 1.6rem;
+}
+.button-primary,
+.button-secondary {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 2.5rem;
+	padding: 0.45rem 0.95rem;
+	border-radius: 6px;
+	font-size: 0.9rem;
+	font-weight: 700;
+	text-decoration: none;
+	transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.button-primary {
+	color: var(--bg);
+	background: var(--accent);
+	border: 1px solid var(--accent);
+}
+.button-primary:hover {
+	color: var(--bg);
+	background: var(--accent-hover);
+	border-color: var(--accent-hover);
+}
+.button-secondary {
+	color: var(--accent);
+	border: 1px solid var(--accent);
+}
+.button-secondary:hover {
+	color: var(--bg);
+	background: var(--accent);
+}
+.section {
+	padding: 2.75rem 0 0;
+}
+.section-header {
+	margin-bottom: 1.15rem;
+}
+.section-header h2 {
+	font-size: clamp(1.35rem, 3vw, 1.8rem);
+	margin-bottom: 0.25rem;
+}
+.section-header p {
+	color: var(--text-muted);
+	margin: 0;
+	max-width: 60ch;
+}
+.proof-list {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 0.75rem;
+	padding: 0;
+	margin: 1.35rem 0 0;
+	list-style: none;
+}
+.proof-list li {
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--bg-secondary);
+	padding: 1rem;
+	color: var(--text);
+	font-size: 0.95rem;
+	line-height: 1.45;
+}
+.proof-list strong {
+	display: block;
+	color: var(--accent);
+	font-size: 1.1rem;
+	margin-bottom: 0.15rem;
+}
+.work-list,
+.post-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: 0.75rem;
+}
+.work-card,
+.post-card {
+	display: block;
+	padding: 1.1rem 1.2rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--bg-secondary);
+	color: var(--text);
+	text-decoration: none;
+	transition: background 0.15s ease, border-color 0.15s ease;
+}
+.work-card:hover,
+.post-card:hover {
+	background: var(--bg);
+	border-color: var(--accent);
+}
+.work-card:hover h3,
+.post-card:hover h3 {
+	color: var(--accent);
+}
+.work-topline,
+.post-date {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.55rem;
+	margin-bottom: 0.35rem;
+	color: var(--text-muted);
+	font-size: 0.78rem;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+.status-badge {
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	padding: 0.1rem 0.45rem;
+	color: var(--accent);
+	letter-spacing: 0.05em;
+}
+.work-card h3,
+.post-card h3 {
+	font-size: 1.1rem;
+	margin: 0 0 0.35rem;
+	transition: color 0.15s ease;
+}
+.work-card p,
+.post-card p {
+	color: var(--text-muted);
+	font-size: 0.95rem;
+	line-height: 1.55;
+	margin: 0;
+}
+.section-link {
+	margin-top: 1rem;
+}
+.section-link a {
+	font-weight: 700;
+}
+.contact-panel {
+	border-top: 1px solid var(--border);
+	border-bottom: 1px solid var(--border);
+	padding: 1.5rem 0;
+}
+.contact-links {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.85rem;
+	margin-top: 1rem;
+}
+.contact-links a {
+	font-weight: 700;
+}
 .tag-bar {
-  display: flex;
-  flex-wrap: nowrap;
-  gap: 0.5em;
-  margin-bottom: 2rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: thin;
-  scrollbar-color: var(--accent) transparent;
-}
-.tag-bar::-webkit-scrollbar { height: 4px; }
-.tag-bar::-webkit-scrollbar-track { background: transparent; }
-.tag-bar::-webkit-scrollbar-thumb {
-  background: var(--accent);
-  border-radius: 2px;
-}
-.tag-bar .tag { flex-shrink: 0; }
-@media (max-width: 720px) {
-  .tag-bar {
-    padding-bottom: 1rem;
-    scrollbar-width: none;
-  }
-  .tag-bar::-webkit-scrollbar { display: none; }
-}
-
-/* Portal grid */
-.portal-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 3rem;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em;
+	margin-top: 1rem;
 }
 @media (max-width: 720px) {
-  .portal-grid { grid-template-columns: 1fr; }
+	.hero {
+		padding: 2.75rem 0 2rem;
+	}
+	.proof-list {
+		grid-template-columns: 1fr;
+	}
+	.work-card,
+	.post-card {
+		padding: 1rem;
+	}
 }
-.portal-tile {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1.4rem 1.5rem;
-  text-decoration: none;
-  color: var(--text);
-  background: var(--bg-secondary);
-  transition: border-color 0.15s, background 0.15s;
-}
-.portal-tile:hover {
-  border-color: var(--accent);
-  background: var(--bg);
-}
-.portal-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  margin-bottom: 0.35rem;
-}
-.portal-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 0.3rem;
-  transition: color 0.15s;
-}
-.portal-tile:hover .portal-title { color: var(--accent); }
-.portal-subtitle {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  line-height: 1.5;
-  flex: 1;
-}
-.portal-divider {
-  border: none;
-  border-top: 1px solid var(--border);
-  margin: 1rem 0 0.75rem;
-}
-.portal-recency-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  display: block;
-  margin-bottom: 0.2rem;
-}
-.portal-recency-title {
-  font-size: 0.875rem;
-  color: var(--text);
-  display: block;
-  line-height: 1.4;
-  margin-bottom: 0.15rem;
-}
-.portal-recency-date {
-  font-size: 0.78rem;
-  color: var(--text-muted);
-  display: block;
-}
-.portal-cta {
-  font-size: 0.82rem;
-  color: var(--accent);
-  margin-top: 1rem;
-  display: block;
+@media (max-width: 480px) {
+	.hero-actions {
+		flex-direction: column;
+	}
+	.button-primary,
+	.button-secondary {
+		width: 100%;
+	}
 }
 </style>
 </head>
 <body>
 <Header />
 <main>
-  <section class="hero">
-    <h1 class="hero-name">{SITE_AUTHOR}</h1>
-    <p class="hero-tagline">{SITE_TAGLINE}</p>
-    <p class="hero-description">{SITE_DESCRIPTION}</p>
-  </section>
+	<section class="hero" aria-labelledby="home-title">
+		<p class="eyebrow">Sacramento-based systems professional</p>
+		<h1 id="home-title">Infrastructure Engineer &amp; Technical Consultant</h1>
+		<p class="hero-lead">{homepageDescription}</p>
+		<p class="hero-value">
+			I deploy, troubleshoot, document, and improve infrastructure—then make it understandable and supportable for the people who use it.
+		</p>
+		<div class="hero-actions">
+			<a class="button-primary" href="/projects">View infrastructure work</a>
+			<a class="button-secondary" href="/about">About Me</a>
+		</div>
+	</section>
 
-  {allTags.length > 0 && (
-    <div class="tag-bar">
-      {allTags.map(([tag]) => (
-        <a href={`/tags/${tag}`} class="tag">{tag}</a>
-      ))}
-    </div>
-  )}
+	<section class="section" aria-labelledby="proof-title">
+		<div class="section-header">
+			<h2 id="proof-title">Professional Proof</h2>
+		</div>
+		<ul class="proof-list">
+			{proofItems.map((item) => {
+				const [metric, ...label] = item.split(' ');
+				return (
+					<li>
+						<strong>{metric}</strong>
+						<span>{label.join(' ')}</span>
+					</li>
+				);
+			})}
+		</ul>
+	</section>
 
-  <div class="portal-grid">
-    <a href="/blog" class="portal-tile">
-      <div class="portal-label">Writing</div>
-      <div class="portal-title">{allPosts.length} post{allPosts.length !== 1 ? 's' : ''}</div>
-      <div class="portal-subtitle">Essays, walkthroughs, and thinking out loud.</div>
-      {latestPost && (
-        <>
-          <hr class="portal-divider" />
-          <span class="portal-recency-label">Latest</span>
-          <span class="portal-recency-title">{latestPost.data.title}</span>
-          <span class="portal-recency-date"><FormattedDate date={latestPost.data.pubDate} /></span>
-        </>
-      )}
-      <span class="portal-cta">Browse all &rarr;</span>
-    </a>
+	<section class="section" aria-labelledby="work-title">
+		<div class="section-header">
+			<h2 id="work-title">Selected Infrastructure Work</h2>
+		</div>
+		<ul class="work-list">
+			{featuredProjects.map(({ evidence, summary, project }) => (
+				<li>
+					<a class="work-card" href={`/projects/${project.id}`}>
+						<div class="work-topline">
+							<span>{evidence}</span>
+							<span class="status-badge">{statusLabel[project.data.status]}</span>
+						</div>
+						<h3>{project.data.title}</h3>
+						<p>{summary}</p>
+					</a>
+				</li>
+			))}
+		</ul>
+		<p class="section-link"><a href="/projects">Browse all projects &rarr;</a></p>
+	</section>
 
-    <a href="/projects" class="portal-tile">
-      <div class="portal-label">Projects</div>
-      <div class="portal-title">{activeProjectCount} active</div>
-      <div class="portal-subtitle">Things in progress, things documented, things half-broken.</div>
-      {latestProject && (
-        <>
-          <hr class="portal-divider" />
-          <span class="portal-recency-label">Last updated</span>
-          <span class="portal-recency-title">{latestProject.data.title}</span>
-          <span class="portal-recency-date"><FormattedDate date={latestProject.data.updatedDate ?? latestProject.data.pubDate} /></span>
-        </>
-      )}
-      <span class="portal-cta">Browse all &rarr;</span>
-    </a>
+	<section class="section" aria-labelledby="writing-title">
+		<div class="section-header">
+			<h2 id="writing-title">Recent Writing</h2>
+			<p>Notes on systems, documentation, AI workflows, site infrastructure, and the work of making technical decisions legible.</p>
+		</div>
+		<ul class="post-list">
+			{recentPosts.map((post) => (
+				<li>
+					<a class="post-card" href={`/blog/${post.id}`}>
+						<span class="post-date"><FormattedDate date={post.data.pubDate} /></span>
+						<h3>{post.data.title}</h3>
+						<p>{post.data.description}</p>
+					</a>
+				</li>
+			))}
+		</ul>
+		<p class="section-link"><a href="/blog">Browse all writing &rarr;</a></p>
+	</section>
 
-    <a href="/about" class="portal-tile">
-      <div class="portal-label">About</div>
-      <div class="portal-title">{SITE_AUTHOR}</div>
-      <div class="portal-subtitle">Sacramento-based IT consultant, homelabber, and chronic pattern-finder.</div>
-      <span class="portal-cta">Read more &rarr;</span>
-    </a>
-  </div>
+	<section class="section" aria-labelledby="contact-title">
+		<div class="contact-panel">
+			<div class="section-header">
+				<h2 id="contact-title">About and Contact</h2>
+			</div>
+			<div class="contact-links" aria-label="Contact and profile links">
+				<a href="/about">Read the About page</a>
+				<a href={`mailto:${CONTACT_EMAIL}`}>Email</a>
+				<a href={SOCIAL_GITHUB} target="_blank" rel="noopener">GitHub</a>
+				<a href={SOCIAL_LINKEDIN} target="_blank" rel="noopener">LinkedIn</a>
+			</div>
+		</div>
+	</section>
+
+	{allTags.length > 0 && (
+		<section class="section" aria-labelledby="topics-title">
+			<div class="section-header">
+				<h2 id="topics-title">Topics</h2>
+				<p>Lower-level navigation into the existing tag pages.</p>
+			</div>
+			<div class="tag-bar">
+				{allTags.map(([tag]) => (
+					<a href={`/tags/${tag}`} class="tag">{tag}</a>
+				))}
+			</div>
+		</section>
+	)}
 </main>
 <Footer />
 </body>
-<script>
-(function () {
-  const bar = document.querySelector<HTMLElement>('.tag-bar');
-  if (!bar) return;
-  bar.addEventListener('wheel', (e) => {
-    if (e.deltaY !== 0) {
-      e.preventDefault();
-      bar.scrollLeft += e.deltaY;
-    }
-  }, { passive: false });
-})();
-</script>
 </html>
