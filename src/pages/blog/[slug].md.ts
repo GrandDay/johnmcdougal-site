@@ -19,7 +19,7 @@ const frontmatter = [
 `description: "${description}"`,
 `date: ${pubDate.toISOString().split('T')[0]}`,
 `tags: [${tags.map((t: string) => `"${t}"`).join(', ')}]`,
-`canonical: https://johnmcdougal.com/blog/${post.id}`,
+`canonical: https://johnmcdougal.com/blog/${post.id}/`,
 '---',
 '',
 ].join('\n');

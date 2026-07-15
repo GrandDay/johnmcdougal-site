@@ -2,7 +2,7 @@
 title: "The IT Guy Who Listens"
 description: "AI changes the cost of execution. It doesn't change the cost of judgment. The person who keeps the diagnostic loop open, asks the question that reframes the problem, and knows what the system is actually for -- that's the human moat."
 pubDate: 2026-05-05
-tags: ["productivity", "workflow", "systems-thinking", "AI", "consulting"]
+tags: ["productivity", "workflow", "systems-thinking", "ai", "consulting"]
 series: "Working with AI in 2026"
 seriesPart: 6
 ---

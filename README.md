@@ -14,7 +14,7 @@ The stack is deliberately boring in the best way: static files, no client-side f
 
 ## Stack
 
-- **[Astro 5](https://astro.build)** — static site generator
+- **[Astro 6](https://astro.build)** — static site generator
 - **[Cloudflare Pages](https://pages.cloudflare.com)** — hosting + CDN + deploy pipeline
 - **Markdown / MDX** — all content authored here
 - **Custom CSS** — three-theme system (light / dark / true black OLED), teal accent (`#14b8a6`)

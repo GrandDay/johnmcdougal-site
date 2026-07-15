@@ -2,7 +2,7 @@
 title: "Systems That Build Systems"
 description: "The most useful thing AI changes isn't individual tasks -- it's the economics of building the systems that do the tasks. When scaffolding gets cheap enough, you build infrastructure you'd have skipped. That infrastructure compounds."
 pubDate: 2026-05-05
-tags: ["productivity", "tools", "workflow", "systems-thinking", "AI"]
+tags: ["productivity", "tools", "workflow", "systems-thinking", "ai"]
 series: "Working with AI in 2026"
 seriesPart: 5
 ---
