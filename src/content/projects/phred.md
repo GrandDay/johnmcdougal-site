@@ -22,7 +22,7 @@ Storage is intentionally split by role. Phred uses local NVMe for active model w
 
 ## What I proved
 
-The original proof of concept ran CUDA-enabled `llama.cpp` and `llama-server` on bare-metal Ubuntu Server. It served a quantized Gemma-family model in roughly the 26Band 31B classess (expirementing between dense and MOE models) and exposed it through LiteLLM as an OpenAI-compatible access surface. Other machines and clients could use the model through that API layer instead of each client owning a separate model runtime.
+The original proof of concept ran CUDA-enabled `llama.cpp` and `llama-server` on bare-metal Ubuntu Server. It served a quantized Gemma-family model in roughly the 26B and 31B classes (expirementing between dense and MOE models) and exposed it through LiteLLM as an OpenAI-compatible access surface. Other machines and clients could use the model through that API layer instead of each client owning a separate model runtime.
 
 That setup proved three things I cared about: local GPU inference worked, API access could be normalized, and multiple clients could share a stable backend. It also gave me a practical place to learn failure modes: driver behavior, CUDA visibility, service startup, model loading, client compatibility, and the operational notes needed to rebuild the stack later.
 
@@ -46,7 +46,7 @@ The usual split is straightforward: sustained or stable inference belongs on Phr
 
 The target design moves Phred toward Proxmox GPU passthrough, explicit GPU ownership, and reproducible provisioning. The planned profiles assign the two RTX 3090 GPUs to the primary large-model profile and reserve the RTX 3060 Ti for a smaller, faster, multimodal, or experimental profile. The target also includes an off-Phred LiteLLM gateway, documented workload profiles, 30B/32B-class coding and general-purpose model candidates, long-context experiments, and a runtime bakeoff across vLLM, SGLang, and continued `llama.cpp`/GGUF or hybrid work.
 
-The managed rebuild should use the same infrastructure discipline as the rest of the lab: Packer for base-image construction, OpenTofu for VM and infrastructure provisioning, cloud-init for first boot, Ansible for driver/runtime/service configuration, Docker or Compose for repeatable service packaging, and Git-backed review around the operational artifacts. Project-scoped RAG, embeddings, reranking, controlled tool execution, and better runtime/GPU/latency/routing observability belong around the inference system, not as claims that everything already runs today.
+The planned managed rebuild is designed to use the same infrastructure discipline as the rest of the lab: Packer for base-image construction, OpenTofu for VM and infrastructure provisioning, cloud-init for first boot, Ansible for driver/runtime/service configuration, Docker or Compose for repeatable service packaging, and Git-backed review around the operational artifacts. Project-scoped RAG, embeddings, reranking, controlled tool execution, and better runtime/GPU/latency/routing observability belong around the inference system, not as claims that everything already runs today.
 
 ## Next work and limits
 
