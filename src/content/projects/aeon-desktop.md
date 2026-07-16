@@ -1,6 +1,6 @@
 ---
 title: "Aeon and the Immutable Desktop"
-description: "An openSUSE MicroOS rabbit hole. Immutable Linux, Distrobox, and a new way of thinking about what a workstation can be."
+description: "Validated immutable Linux workstation practice around Aeon, Distrobox, dotfiles, and repeatable daily tooling across lab-connected workflows."
 pubDate: 2026-04-15
 status: active
 tags: ["linux", "aeon", "distrobox", "immutable", "dotfiles", "homelab", "workstation", "docker"]

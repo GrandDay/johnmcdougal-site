@@ -1,9 +1,9 @@
 ---
 title: "CUE-Verse"
-description: "A framework for giving your homelab depth and linked memory. Because a lab without context is just a pile of running VMs."
+description: "An evolving source-of-truth and documentation framework for keeping lab decisions, deployment notes, and operational context connected across infrastructure, tooling, and knowledge work."
 pubDate: 2026-04-15
 status: wip
-tags: ["knowledge-management", "notion", "obsidian", "homelab", "self-hosted", "storage", "dokploy"]
+tags: ["knowledge-management", "notion", "obsidian", "homelab", "self-hosted", "storage", "dokploy", "documentation"]
 ---
 
 ## What this is

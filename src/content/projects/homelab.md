@@ -1,9 +1,9 @@
 ---
 title: "The Homelab"
-description: "Playground, arena, forge, and base of operations -- all in one. A Proxmox cluster, four NAS devices, and a constantly evolving stack built for learning, self-hosting, and proof of concept."
+description: "An operational lab for virtualization, storage, networking, backups, self-hosting, and local AI infrastructure, with private homelab-iac workflows for repeatable change, validation, and recovery."
 pubDate: 2026-04-15
 status: active
-tags: ["homelab", "proxmox", "self-hosted", "infrastructure", "zfs", "backup"]
+tags: ["homelab", "proxmox", "self-hosted", "infrastructure", "zfs", "backup", "automation", "ai"]
 ---
 
 ## What this is

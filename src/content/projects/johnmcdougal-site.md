@@ -1,6 +1,6 @@
 ---
 title: "This Site"
-description: "An Astro 5 blog and project journal. Built in public, deployed on Cloudflare Pages, and documented one post at a time."
+description: "The Astro 6 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior."
 pubDate: 2026-04-15
 status: active
 tags: ["astro", "cloudflare", "web", "blog", "site-build", "email"]
@@ -10,7 +10,7 @@ liveUrl: "https://johnmcdougal.com"
 
 ## What this is
 
-The site you're on. An Astro 5 blog and project journal, deployed on Cloudflare
+The site you're on. An Astro 6 blog and project journal, deployed on Cloudflare
 Pages, with a full email and DNS stack behind it. Built from scratch and
 documented publicly.
 
@@ -23,7 +23,7 @@ understand it well enough.
 
 ## Current state
 
-- Astro 5 with MDX, deployed to Cloudflare Pages via GitHub push-to-main
+- Astro 6 with MDX, deployed to Cloudflare Pages via GitHub push-to-main
 - Three-mode theme (OLED / dark / light), teal accent
 - PostHog analytics proxied through a subdomain to avoid blockers
 - Email infrastructure: Cloudflare Email Routing (receive) + SMTP2Go (send) +

@@ -6,9 +6,34 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
 
-const projects = (await getCollection('projects')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
-);
+const projectPriority = [
+	'homelab',
+	'cue-verse',
+	'phred',
+	'aeon-desktop',
+	'userspace',
+	'johnmcdougal-site',
+];
+
+const projectEvidence: Record<string, string> = {
+	'homelab': 'Operational lab with private implementation and recovery workflows',
+	'cue-verse': 'Evolving documentation and source-of-truth framework',
+	'phred': 'Operational local AI infrastructure lab',
+	'aeon-desktop': 'Validated Linux workstation practice',
+	'userspace': 'Evolving tools, data, and knowledge workflow',
+	'johnmcdougal-site': 'Active public documentation platform',
+};
+
+const priorityRank = new Map(projectPriority.map((id, index) => [id, index]));
+const projects = (await getCollection('projects')).sort((a, b) => {
+	const aRank = priorityRank.get(a.id);
+	const bRank = priorityRank.get(b.id);
+	if (aRank !== undefined || bRank !== undefined) {
+		return (aRank ?? Number.MAX_SAFE_INTEGER) - (bRank ?? Number.MAX_SAFE_INTEGER);
+	}
+
+	return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
+});
 
 const tagMap = new Map<string, number>();
 projects.forEach((project) => {
@@ -51,9 +76,9 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 			<ul class="project-list">
 				{projects.map((project) => (
 					<li>
-						<a href={`/projects/${project.id}`} class="project-card">
+						<article class="project-card">
 							<div class="project-header">
-								<h2>{project.data.title}</h2>
+								<h2><a href={`/projects/${project.id}/`}>{project.data.title}</a></h2>
 								<span
 									class="status-badge"
 									style={`color: ${statusColor[project.data.status]}; border-color: ${statusColor[project.data.status]};`}
@@ -61,6 +86,7 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 									{statusLabel[project.data.status]}
 								</span>
 							</div>
+							{projectEvidence[project.id] && <p class="evidence">{projectEvidence[project.id]}</p>}
 							<p>{project.data.description}</p>
 							<div class="project-meta">
 								<span class="date"><FormattedDate date={project.data.pubDate} /></span>
@@ -70,7 +96,7 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 									))}
 								</div>
 							</div>
-						</a>
+						</article>
 					</li>
 				))}
 			</ul>
@@ -109,14 +135,13 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 		display: block;
 		padding: 1.25em 1.5em;
 		background: var(--bg-secondary);
-		text-decoration: none;
 		color: var(--text);
 		transition: background 0.15s ease;
 	}
 	.project-card:hover {
 		background: var(--bg);
 	}
-	.project-card:hover h2 {
+	.project-card:hover h2 a {
 		color: var(--accent);
 	}
 	.project-header {
@@ -128,9 +153,21 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 	h2 {
 		font-size: 1.1em;
 		margin: 0;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+	h2 a {
+		color: var(--text);
+		text-decoration: none;
 		transition: color 0.15s ease;
 	}
+	h2 a:hover,
+	h2 a:focus {
+		color: var(--accent);
+		text-decoration: underline;
+	}
 	.status-badge {
+		flex: 0 0 auto;
 		font-size: 0.7em;
 		font-weight: 700;
 		padding: 0.15em 0.5em;
@@ -144,10 +181,19 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 		color: var(--text-muted);
 		font-size: 0.95em;
 	}
+	.evidence {
+		margin-bottom: 0.35em;
+		color: var(--accent);
+		font-size: 0.82em;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
 	.project-meta {
 		display: flex;
 		align-items: center;
 		gap: 1em;
+		flex-wrap: wrap;
 	}
 	.date {
 		font-size: 0.8em;
@@ -157,5 +203,15 @@ const statusColor = { active: 'var(--accent)', wip: '#f59e0b', archived: 'var(--
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.4em;
+	}
+	@media (max-width: 520px) {
+		.project-card {
+			padding: 1em;
+		}
+		.project-header {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.45em;
+		}
 	}
 </style>
