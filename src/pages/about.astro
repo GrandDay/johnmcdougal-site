@@ -3,109 +3,203 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_AUTHOR, SITE_TITLE, SOCIAL_GITHUB, SOCIAL_LINKEDIN, CONTACT_EMAIL } from '../consts';
+
+const credlyProfile = 'https://www.credly.com/users/john-mcdougal.457284dd/badges/credly';
+
+const roles = [
+	{
+		label: 'IT Systems Administrator / Infrastructure Lead — Manufacturing',
+		points: [
+			'Modernized infrastructure across three manufacturing businesses, including server platforms, physical networking, backups, endpoint management, asset inventory, and support workflows.',
+			'Coordinated ERP and manufacturing-system integration with developers and vendors, translating operational requirements into documented technical workflows and support procedures.',
+			'Delivered employee support and training while evaluating ITSM/RMM capabilities for documentation, monitoring, escalation visibility, and repeatability.',
+		],
+	},
+	{
+		label: 'Support Technician / Systems Administrator — Managed services',
+		points: [
+			'Installed, configured, maintained, and troubleshot more than 150 physical and virtual servers across 100+ managed-services client environments.',
+			'Resolved 40–80+ weekly support requests while supporting servers, endpoints, applications, identity, hardware, networks, Microsoft 365, and Azure AD environments.',
+			'Worked with customers, vendors, and contractors on cabling, racks, enterprise Wi-Fi, switching, AV-integrated rooms, installation, validation, documentation, and transition into support.',
+		],
+	},
+	{
+		label: 'Compliance Officer / Operations Support — Regulated operations',
+		points: [
+			'Managed compliance and inventory systems, maintained accurate operational records, and developed SOPs for repeatable work.',
+			'Supported hardware, labeling, data quality, photography, and process-improvement needs in a regulated operational environment.',
+		],
+	},
+];
+
+const practiceLinks = [
+	{
+		title: 'The Homelab',
+		href: '/projects/homelab/',
+		text: 'Linux, Proxmox, virtualization, networking, storage, backups, and repeatable lab validation.',
+	},
+	{
+		title: 'CUE-Verse',
+		href: '/projects/cue-verse/',
+		text: 'A work-in-progress framework for homelab context, documentation, automation, and linked operational memory.',
+	},
+	{
+		title: 'Aeon and the Immutable Desktop',
+		href: '/projects/aeon-desktop/',
+		text: 'Linux workstation experimentation around openSUSE Aeon, immutable systems, containers, and daily-driver tradeoffs.',
+	},
+	{
+		title: 'This Site',
+		href: '/projects/johnmcdougal-site/',
+		text: 'A public documentation system for writing, projects, deployment notes, and the website itself.',
+	},
+];
 ---
 
 <!doctype html>
 <html lang="en">
 <head>
-<BaseHead title={`About -- ${SITE_TITLE}`} description={`About ${SITE_AUTHOR} -- Sacramento-based IT consultant, homelabber, and chronic pattern-finder.`} />
+<BaseHead title={`About -- ${SITE_TITLE}`} description="About John McDougal -- infrastructure engineer, technical consultant, and systems-focused builder in Sacramento." />
 <style>
 .about {
-width: 740px;
-max-width: calc(100% - 2em);
-margin: 0 auto;
-padding: 3em 1em 2em;
+	width: 780px;
+	max-width: calc(100% - 2em);
+	margin: 0 auto;
+	padding: 3em 1em 2em;
 }
 .opener {
-font-size: 1.05rem;
-font-style: italic;
-color: var(--text-muted);
-border-left: 3px solid var(--accent);
-padding-left: 1rem;
-margin: 0 0 2.5rem;
-line-height: 1.6;
+	font-size: 1.05rem;
+	font-style: italic;
+	color: var(--text-muted);
+	border-left: 3px solid var(--accent);
+	padding-left: 1rem;
+	margin: 0 0 2.5rem;
+	line-height: 1.6;
+}
+.eyebrow {
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--accent);
+	margin: 0 0 0.5rem;
 }
 h1 {
-font-size: clamp(1.75rem, 4vw, 2.25rem);
-margin: 0 0 0.5rem;
+	font-size: clamp(1.75rem, 4vw, 2.35rem);
+	margin: 0 0 0.5rem;
+}
+h2 {
+	font-size: clamp(1.25rem, 3vw, 1.55rem);
+	margin: 0 0 0.85rem;
+}
+h3 {
+	font-size: 1rem;
+	margin: 0 0 0.65rem;
 }
 .tagline {
-color: var(--text-muted);
-font-size: 1.05rem;
-margin: 0 0 2.5rem;
+	color: var(--text-muted);
+	font-size: 1.05rem;
+	margin: 0 0 2rem;
+	max-width: 42rem;
 }
 .section {
-margin-bottom: 2.25rem;
+	margin: 2.4rem 0;
 }
-.section-title {
-font-size: 0.75rem;
-font-weight: 700;
-letter-spacing: 0.1em;
-text-transform: uppercase;
-color: var(--accent);
-margin: 0 0 0.75rem;
+.intro {
+	font-size: 1.05rem;
+	font-weight: 500;
 }
 p {
-line-height: 1.75;
-margin: 0 0 1rem;
-color: var(--text);
+	line-height: 1.75;
+	margin: 0 0 1rem;
+	color: var(--text);
 }
-.philosophy {
-font-size: 1.05rem;
-font-weight: 500;
-color: var(--text);
-margin: 0 0 1rem;
+.muted {
+	color: var(--text-muted);
 }
 .sculptor {
-font-style: italic;
-color: var(--text-muted);
+	font-style: italic;
+	color: var(--text-muted);
+	margin-top: 1.25rem;
 }
 ul {
-margin: 0;
-padding: 0 0 0 1.25rem;
-color: var(--text);
-line-height: 1.9;
+	margin: 0;
+	padding: 0 0 0 1.25rem;
+	color: var(--text);
+	line-height: 1.8;
 }
-.connect-links {
-display: flex;
-gap: 1rem;
-flex-wrap: wrap;
-margin-top: 0.5rem;
+li {
+	margin-bottom: 0.45rem;
 }
 hr {
-border: none;
-border-top: 1px solid rgba(128,128,128,0.15);
-margin: 2rem 0;
+	border: none;
+	border-top: 1px solid rgba(128,128,128,0.15);
+	margin: 2rem 0;
 }
-.creds-grid {
-display: flex;
-gap: 2rem;
-align-items: flex-start;
-flex-wrap: wrap;
+.role-list,
+.practice-grid,
+.path-links {
+	display: grid;
+	gap: 1rem;
 }
-.cred-badges {
-display: flex;
-gap: 1rem;
-flex-wrap: wrap;
+.role {
+	padding: 1rem 0;
+	border-top: 1px solid var(--border);
 }
-.cred-details p,
-.cred-details ul {
-margin: 0 0 0.5rem;
-font-size: 0.95rem;
+.role:first-child {
+	border-top: 0;
+	padding-top: 0;
 }
-.cred-details ul {
-padding-left: 1.25rem;
+.role h3 {
+	color: var(--text);
 }
-.cred-label {
-font-size: 0.7rem;
-font-weight: 700;
-letter-spacing: 0.1em;
-text-transform: uppercase;
-color: var(--accent);
-margin: 1rem 0 0.35rem;
-display: block;
+.practice-card {
+	display: block;
+	padding: 1rem;
+	border: 1px solid var(--border);
+	border-radius: 8px;
+	background: var(--bg-secondary);
+	color: var(--text);
+	text-decoration: none;
+	transition: border-color 0.15s ease, transform 0.15s ease;
 }
-.cred-label:first-child { margin-top: 0; }
+.practice-card:hover,
+.practice-card:focus-visible {
+	border-color: var(--accent);
+	transform: translateY(-1px);
+	outline: none;
+}
+.practice-card strong {
+	display: block;
+	margin-bottom: 0.35rem;
+	color: var(--accent);
+}
+.practice-card span {
+	display: block;
+	color: var(--text);
+	line-height: 1.55;
+}
+.credential-panel {
+	padding: 1rem;
+	border-left: 3px solid var(--accent);
+	background: var(--accent-glow);
+}
+.connect-links,
+.path-links {
+	display: flex;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	margin-top: 0.5rem;
+}
+@media (max-width: 640px) {
+	.about {
+		max-width: calc(100% - 1.25em);
+		padding: 2em 0.5em 1.5em;
+	}
+	.practice-card {
+		padding: 0.85rem;
+	}
+}
 </style>
 </head>
 <body>
@@ -116,88 +210,85 @@ display: block;
 Less a git tree, more a manzanita -- fire-tested, slow-growing. Still branching.
 </blockquote>
 
+<p class="eyebrow">About</p>
 <h1>{SITE_AUTHOR}</h1>
-<p class="tagline">Sacramento-based IT consultant, homelabber, and chronic pattern-finder.</p>
+<p class="tagline">Infrastructure Engineer &amp; Technical Consultant in Sacramento, working across Linux, virtualization, networking, storage, automation, documentation, and AI infrastructure.</p>
+
+<section class="section" aria-labelledby="introduction">
+<h2 id="introduction">I listen first</h2>
+<p class="intro">I'm the IT guy who listens. Not the one who pattern-matches to the most likely fix and moves on -- the one who keeps the loop open until the actual problem comes into view.</p>
+<p>If something doesn't make sense, I haven't broken it down small enough yet. That is how I approach infrastructure, support, documentation, and training: understand the person, understand the operating need, then make the system easier to run.</p>
+<p>I have been distracted by everything all at once for as long as I can remember. The way systems connect, the way concepts layer across domains, the way a problem in networking rhymes with a problem somewhere else -- I can't not see the patterns.</p>
+</section>
 
 <hr />
 
-<div class="section">
-<p>I'm the IT guy who listens. Not the one who pattern-matches to the most likely fix and moves on -- the one who keeps the loop open until the actual problem comes into view. If something doesn't make sense, I haven't broken it down small enough yet. That's the approach. It's also the addiction.</p>
-<p>The longer version is this site.</p>
-</div>
-
-<div class="section">
-<p class="philosophy">"I believe the highest form of connection is taking the time to truly understand a problem -- and the person having it."</p>
-<p>I've been distracted by everything all at once for as long as I can remember. The way systems connect, the way concepts layer across domains, the way a problem in networking rhymes with a problem in something completely unrelated -- I can't not see the patterns.</p>
-<p>Building this site, and building in public, is my way of taking that restless, relentless need to optimize and forcing it into a productive outlet. It's how I hold myself accountable.</p>
-<p>I believe people solve problems better when they're solving them for someone else. I've applied that my whole life: break it down, make it concrete, hand it to a human. That's where the help actually lands.</p>
-</div>
+<section class="section" aria-labelledby="work-style">
+<h2 id="work-style">How I work</h2>
+<p>I translate operational needs into technical work: deploy the thing, validate that it works, troubleshoot across layers when it does not, and document the path so someone else can support it later.</p>
+<p>That work has put me between customers, users, vendors, contractors, developers, and multidisciplinary teams. I care about the handoff as much as the fix, because a system is only finished when the people using it can understand what changed and what to do next.</p>
+</section>
 
 <hr />
 
-<div class="section">
-<p class="section-title">The path here</p>
-<p>It started where a lot of people started: game servers as a kid, Plex for the family, figuring out why the internet was slow. That turned into a homelab. The homelab turned into an obsession with how things actually work -- not just that they do, but why, and what breaks when you push them.</p>
-<p>Self-taught by background, CalBright by current enrollment -- backfilling the formal pieces while the practical work runs in parallel. Security+ done. CySA+ and Net+ in progress. Every cert is a framework for things I've already bumped into in the lab.</p>
-<p class="sculptor">We are both the marble and the sculptor.</p>
+<section class="section" aria-labelledby="experience">
+<h2 id="experience">Professional experience</h2>
+<div class="role-list">
+{roles.map((role) => (
+	<article class="role">
+		<h3>{role.label}</h3>
+		<ul>
+			{role.points.map((point) => <li>{point}</li>)}
+		</ul>
+	</article>
+))}
 </div>
+</section>
 
 <hr />
 
-<div class="section">
-<p class="section-title">Credentials</p>
-<div class="creds-grid">
-<div class="cred-badges">
-<div data-iframe-width="150" data-iframe-height="270" data-share-badge-id="a92e9294-2b42-4598-9e60-d7e285d5213b" data-share-badge-host="https://www.credly.com"></div>
-<div data-iframe-width="150" data-iframe-height="270" data-share-badge-id="909844e6-ec1f-40d8-8e43-5d3de80d0693" data-share-badge-host="https://www.credly.com"></div>
+<section class="section" aria-labelledby="practice">
+<h2 id="practice">Independent technical practice</h2>
+<p>Outside employment, I use my lab and writing projects to test ideas before they become claims. That includes Linux systems, Proxmox and virtualization, networking, storage and backup design, Docker, automation, documentation, and GPU-enabled AI infrastructure using Ubuntu, NVIDIA drivers and CUDA, NVIDIA Container Toolkit, Ollama or llama.cpp, LiteLLM, and repeatable validation notes.</p>
+<div class="practice-grid">
+{practiceLinks.map((link) => (
+	<a class="practice-card" href={link.href}>
+		<strong>{link.title}</strong>
+		<span>{link.text}</span>
+	</a>
+))}
 </div>
-<div class="cred-details">
-<span class="cred-label">Earned</span>
-<p><strong>CompTIA Security+ CE</strong> -- April 2026</p>
-<p><strong>Okta Define a Secure Policy Structure</strong> -- July 2026</p>
-<span class="cred-label">In progress</span>
-<ul>
-<li>CompTIA CySA+</li>
-<li>CompTIA Network+</li>
-</ul>
-<span class="cred-label">Education</span>
-<p>CalBright College -- current enrollment</p>
-</div>
-</div>
-</div>
+</section>
 
 <hr />
 
-<div class="section">
-<p class="section-title">What this site is</p>
-<p>This is where I document the work -- publicly, honestly, while it's still in progress. If something clicks, or you want to think through a problem together, that's what it's for.</p>
+<section class="section" aria-labelledby="credentials">
+<h2 id="credentials">Credentials and current learning</h2>
+<div class="credential-panel">
+	<p><strong>CompTIA Security+</strong> -- issued April 2026.</p>
+	<p><strong>Okta learning path -- in progress</strong> -- selected for the What's Next by Okta Learning Grant. Skill assessments complete; hands-on labs in progress before the Okta Certified Professional exam.</p>
+	<p>Current cybersecurity studies at Calbright College.</p>
+	<p><a href={credlyProfile} target="_blank" rel="noopener">View my public Credly credential profile</a>.</p>
 </div>
+</section>
 
 <hr />
 
-<div class="section">
-<p class="section-title">Currently building</p>
-<ul>
-<li>Proxmox homelab, PBS backups, and a local AI inference server called Phred</li>
-<li>CUE-Verse: a framework for giving your homelab depth and linked memory</li>
-<li>Aeon Desktop: an immutable Linux workstation experiment</li>
-<li>This site, one post at a time</li>
-</ul>
+<section class="section" aria-labelledby="paths">
+<h2 id="paths">Project and contact paths</h2>
+<p>This site is where I document the work publicly while it is still in progress. If something clicks, or you want to think through a problem together, start with the projects, writing, or contact links.</p>
+<div class="path-links">
+	<a href="/projects/" class="btn-outline">Projects</a>
+	<a href="/blog/" class="btn-outline">Writing</a>
 </div>
-
-<hr />
-
-<div class="section">
-<p class="section-title">Find me</p>
-<nav class="connect-links">
+<nav class="connect-links" aria-label="Contact and social links">
 <a href={SOCIAL_GITHUB} target="_blank" rel="noopener" class="btn-outline">GitHub</a>
 <a href={SOCIAL_LINKEDIN} target="_blank" rel="noopener" class="btn-outline">LinkedIn</a>
 <a href={`mailto:${CONTACT_EMAIL}`} class="btn-outline">Email</a>
 </nav>
-</div>
+</section>
 </div>
 </main>
 <Footer />
-<script is:inline type="text/javascript" async src="//cdn.credly.com/assets/utilities/embed.js"></script>
 </body>
 </html>
