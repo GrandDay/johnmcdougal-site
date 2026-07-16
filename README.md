@@ -38,14 +38,43 @@ public/
 
 ## Local development
 
-> **Note:** Run `npm install` and dev/build commands from a local directory that is **not** inside a cloud-synced folder (Google Drive, OneDrive, etc.). Synced folders cause file-lock errors with `node_modules`. Keep source in your synced folder for backup; clone or copy to a local path for building.
+> **Note:** Run install and dev/build commands from a local directory that is **not** inside a cloud-synced folder (Google Drive, OneDrive, etc.). Synced folders cause file-lock errors with `node_modules`. Keep source in your synced folder for backup; clone or copy to a local path for building.
 
-| Command           | Action                                      |
-| :---------------- | :------------------------------------------ |
-| `npm install`     | Install dependencies                        |
-| `npm run dev`     | Start local dev server at `localhost:4321`  |
-| `npm run build`   | Build production site to `./dist/`          |
-| `npm run preview` | Preview build locally before deploying      |
+Expected local runtime:
+
+- Node `22.22.0` (`.nvmrc`)
+- npm `10.9.4`
+- clean install path: `npm ci`
+
+| Command                 | Action                                                           |
+| :---------------------- | :--------------------------------------------------------------- |
+| `npm ci`                | Install exactly from `package-lock.json`                         |
+| `npm run dev`           | Start local dev server at `localhost:4321`                       |
+| `npm run check`         | Run Astro content and type checks                                |
+| `npm run build`         | Build production site to `./dist/`                               |
+| `npm run verify:build`  | Verify selected generated-site invariants in `./dist/`           |
+| `npm run validate`      | Run whitespace check, Astro check, fresh build, and verification |
+| `npm run review`        | Validate, refresh, and leave a local preview server running      |
+| `npm run review:status` | Report repository, build, and owned preview-server state         |
+| `npm run review:stop`   | Stop only the script-owned preview server                        |
+
+The review server binds to `127.0.0.1` by default and writes ignored state/logs under `.tmp/`. When human testing is complete, stop it with `npm run review:stop` before committing unless the active packet gives different closure instructions.
+
+Validation policy:
+
+1. Run deterministic checks first with `npm run validate`.
+2. Use generated output and HTTP checks for route behavior.
+3. Use the persistent localhost review server for human visual review.
+4. Do not use the known failing in-app/sandbox browser path as an acceptance gate.
+5. Do not install Playwright or browser binaries during normal implementation packets.
+6. Use a known-working host browser only when a packet explicitly requires browser rendering.
+
+Branch and release policy:
+
+- Keep feature work local until localhost validation and human review pass.
+- Do not commit, push, merge, reset, or discard changes without explicit authorization.
+- Treat body-copy word counts as diagnostics only; fit, evidence, truth boundaries, and reader comprehension govern narrative copy.
+- Generated directories (`dist/`, `.astro/`, `.tmp/`) and local environment files are not source changes.
 
 Cloudflare Pages deploys automatically on every push to `main`.
 

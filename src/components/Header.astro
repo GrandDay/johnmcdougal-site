@@ -279,13 +279,31 @@ import HeaderLink from './HeaderLink.astro';
 </style>
 
 <script>
+declare global {
+	interface Window {
+		__setTheme: (theme: string) => void;
+	}
+}
+
 (function () {
-	const picker = document.getElementById('theme-picker');
-	const trigger = document.getElementById('theme-trigger');
-	const dropdown = document.getElementById('theme-dropdown');
-	const mobileMenuTrigger = document.getElementById('mobile-menu-trigger');
-	const primaryNavigation = document.getElementById('primary-navigation');
-	if (!picker || !trigger || !dropdown || !mobileMenuTrigger || !primaryNavigation) return;
+	const pickerElement = document.getElementById('theme-picker');
+	const triggerElement = document.getElementById('theme-trigger');
+	const dropdownElement = document.getElementById('theme-dropdown');
+	const mobileMenuTriggerElement = document.getElementById('mobile-menu-trigger');
+	const primaryNavigationElement = document.getElementById('primary-navigation');
+	if (
+		!(pickerElement instanceof HTMLElement) ||
+		!(triggerElement instanceof HTMLButtonElement) ||
+		!(dropdownElement instanceof HTMLElement) ||
+		!(mobileMenuTriggerElement instanceof HTMLButtonElement) ||
+		!(primaryNavigationElement instanceof HTMLElement)
+	) return;
+
+	const picker = pickerElement;
+	const trigger = triggerElement;
+	const dropdown = dropdownElement;
+	const mobileMenuTrigger = mobileMenuTriggerElement;
+	const primaryNavigation = primaryNavigationElement;
 
 	const options = Array.from(dropdown.querySelectorAll<HTMLElement>('li[role="option"]'));
 	const primaryLinks = Array.from(primaryNavigation.querySelectorAll<HTMLElement>('a'));
