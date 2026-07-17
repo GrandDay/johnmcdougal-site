@@ -3,7 +3,10 @@ import { getCollection } from 'astro:content';
 import BaseHead from '../../components/BaseHead.astro';
 import Header from '../../components/Header.astro';
 import Footer from '../../components/Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { SITE_TITLE } from '../../consts';
+
+const pageDescription =
+	'Browse johnmcdougal.com posts and projects by topic across infrastructure, AI workflows, documentation, Cloudflare, Linux, and homelab work.';
 
 const blogPosts = await getCollection('blog');
 const projects = await getCollection('projects');
@@ -22,7 +25,7 @@ const tags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeComp
 <!doctype html>
 <html lang="en">
 	<head>
-		<BaseHead title={`Tags — ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+		<BaseHead title={`Tags — ${SITE_TITLE}`} description={pageDescription} />
 	</head>
 	<body>
 		<Header />

@@ -16,7 +16,8 @@ export async function getStaticPaths() {
 
 const project = Astro.props;
 const { Content } = await render(project);
-const { title, description, pubDate, updatedDate, status, repoUrl, liveUrl, tags } = project.data;
+const { title, description, pubDate, updatedDate, heroImage, status, repoUrl, liveUrl, tags } = project.data;
+const socialImage = heroImage || undefined;
 
 const allPosts = await getCollection('blog');
 const linkedPosts = allPosts
@@ -34,7 +35,7 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-m
 <!doctype html>
 <html lang="en">
   <head>
-    <BaseHead title={`${title} -- ${SITE_TITLE}`} description={description} />
+    <BaseHead title={`${title} -- ${SITE_TITLE}`} description={description} image={socialImage} />
     <style>
       .prose {
         width: 720px;

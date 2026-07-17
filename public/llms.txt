@@ -1,14 +1,14 @@
 # John McDougal
 
-> Sacramento-based IT consultant, homelabber, and chronic pattern-finder. johnmcdougal.com.
+> Sacramento-based infrastructure engineer and technical consultant documenting systems work at johnmcdougal.com.
 
 ## About
-- [About John McDougal](https://johnmcdougal.com/about/): Philosophy, credentials, career path, and what this site is for.
+- [About John McDougal](https://johnmcdougal.com/about/): Professional background, systems focus, credentials, and contact context.
 
 ## Blog
 
 ### Series: How I built johnmcdougal.com
-- [How I built johnmcdougal.com with Claude and Astro](https://johnmcdougal.com/blog/how-i-built-johnmcdougal-com-with-claude-and-astro/): Part 1. Astro 5, Cloudflare Pages, agentic build process with Claude.
+- [How I built johnmcdougal.com with Claude and Astro](https://johnmcdougal.com/blog/how-i-built-johnmcdougal-com-with-claude-and-astro/): Part 1. Astro, Cloudflare Pages, and an agent-assisted build process.
 - [Custom email routing with Cloudflare and SMTP2Go](https://johnmcdougal.com/blog/custom-email-routing-cloudflare-smtp2go/): Part 2. Receive via Cloudflare Email Routing, send via SMTP2Go, custom domain email at zero cost.
 - [PostHog analytics on a static site (and fixing what the wizard broke)](https://johnmcdougal.com/blog/posthog-analytics-astro-cloudflare-proxy/): Part 3. Self-hosted-style PostHog analytics proxied through Cloudflare to avoid blockers.
 - [SPF, DKIM, and DMARC: the full lockdown after setting up custom email](https://johnmcdougal.com/blog/email-authentication-spf-dkim-dmarc/): Part 4. Email authentication end to end -- SPF hard fail, DKIM via SMTP2Go CNAME, DMARC hardening sequence.
@@ -27,14 +27,15 @@
 - [Hello, World](https://johnmcdougal.com/blog/hello-world/): Introduction to the site.
 
 ## Raw Markdown
-All blog posts are available as raw markdown at `/blog/[slug].md` alongside their HTML counterparts.
+All blog posts are available as raw Markdown at `/blog/[slug].md` alongside their HTML counterparts.
 
 ## Projects
-- [This Site](https://johnmcdougal.com/projects/johnmcdougal-site/): Astro 5 blog and project journal. The site you are on -- documented publicly.
-- [Homelab](https://johnmcdougal.com/projects/homelab/): Proxmox cluster, NAS devices, local AI inference servers (Phred + Frosty), PBS backups.
-- [CUE-Verse](https://johnmcdougal.com/projects/cue-verse/): A framework for giving a homelab depth and linked memory -- knowledge, storage, compute, and context layers.
-- [Aeon Desktop](https://johnmcdougal.com/projects/aeon-desktop/): An openSUSE MicroOS workstation experiment -- Distrobox, dotfiles, immutable Linux, and automated media ripping.
-- [Userspace](https://johnmcdougal.com/projects/userspace/): A framework for maintaining ownership and interoperability across your personal digital life.
+- [Homelab](https://johnmcdougal.com/projects/homelab/): Operational lab for virtualization, storage, networking, backups, self-hosting, and local AI infrastructure practice.
+- [CUE-Verse](https://johnmcdougal.com/projects/cue-verse/): Source-of-truth and documentation framework for keeping lab decisions and operational context connected.
+- [Phred](https://johnmcdougal.com/projects/phred/): Self-hosted AI infrastructure project for local model serving, GPU inference, and reproducible infrastructure.
+- [Aeon Desktop](https://johnmcdougal.com/projects/aeon-desktop/): Daily-use Linux workstation practice around Aeon Desktop, Distrobox, Podman, dotfiles, and repeatable tooling.
+- [Userspace](https://johnmcdougal.com/projects/userspace/): Repository-governed project and knowledge environment for portable workflows and source-of-truth boundaries.
+- [This Site](https://johnmcdougal.com/projects/johnmcdougal-site/): Astro 6 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior.
 
 ## Tags
 - [All tags](https://johnmcdougal.com/tags/): Browse all content by topic.

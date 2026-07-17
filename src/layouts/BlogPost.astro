@@ -9,6 +9,7 @@ import Header from '../components/Header.astro';
 type Props = CollectionEntry<'blog'>['data'] & { id: string };
 
 const { title, description, pubDate, updatedDate, heroImage, tags, series, seriesPart, id } = Astro.props;
+const socialImage = heroImage || undefined;
 
 const allPosts = await getCollection('blog');
 
@@ -34,7 +35,7 @@ return b.data.pubDate.valueOf() - a.data.pubDate.valueOf();
 
 <html lang="en">
 <head>
-<BaseHead title={title} description={description} pubDate={pubDate} />
+<BaseHead title={title} description={description} image={socialImage} pubDate={pubDate} />
 <style>
 main {
 width: calc(100% - 2em);

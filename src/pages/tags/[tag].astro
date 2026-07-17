@@ -30,6 +30,8 @@ export async function getStaticPaths() {
 
 const { tag } = Astro.params;
 const { posts, projects } = Astro.props;
+const itemCount = posts.length + projects.length;
+const pageDescription = `Browse ${itemCount} johnmcdougal.com item${itemCount === 1 ? '' : 's'} tagged ${tag}, including posts and projects.`;
 ---
 
 <!doctype html>
@@ -37,7 +39,7 @@ const { posts, projects } = Astro.props;
 	<head>
 		<BaseHead
 			title={`#${tag} — ${SITE_TITLE}`}
-			description={`Posts and projects tagged with ${tag}`}
+			description={pageDescription}
 		/>
 	</head>
 	<body>
@@ -46,7 +48,7 @@ const { posts, projects } = Astro.props;
 			<div class="tag-header">
 				<a href="/tags" class="back">← All tags</a>
 				<h1><span class="tag">{tag}</span></h1>
-				<p class="count">{posts.length + projects.length} items</p>
+				<p class="count">{itemCount} items</p>
 			</div>
 
 			{posts.length > 0 && (
