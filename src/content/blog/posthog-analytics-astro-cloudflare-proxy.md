@@ -20,7 +20,7 @@ Here's what the current setup looks like, and how to get it actually working on 
 
 The short version: 1M events per month on the free tier, privacy-forward defaults, and you own your data. No Google Analytics. No third-party ad network sitting in the middle of everything.
 
-For a personal site that I'm also using to document what I'm building, it matters that the analytics tooling is consistent with what I'm saying I care about. PostHog clears that bar. If the site ever scaled past what the free tier handles, there's a self-hosted path -- but we're a long way from that.
+For a [personal site](/projects/johnmcdougal-site/) that I'm also using to document what I'm building, it matters that the analytics tooling is consistent with what I'm saying I care about. PostHog clears that bar. If the site ever scaled past what the free tier handles, there's a self-hosted path -- but we're a long way from that.
 
 ## What the wizard got wrong
 
@@ -110,6 +110,6 @@ If the requests appear in the Network tab but events aren't showing up in PostHo
 
 ## What this builds on
 
-This is the third piece of the site's foundation. [The first post](/blog/how-i-built-johnmcdougal-com-with-claude-and-astro) covered the full stack decision -- PostHog was on the list there but without implementation detail. [The second](/blog/custom-email-routing-cloudflare-smtp2go) covered email routing.
+This is the third piece of the site's foundation. [The first post](/blog/how-i-built-johnmcdougal-com-with-claude-and-astro/) covered the full stack decision -- PostHog was on the list there but without implementation detail. [The second](/blog/custom-email-routing-cloudflare-smtp2go/) covered email routing.
 
 At some point the site will likely be big enough to consider the self-hosted PostHog path -- a Docker Compose setup on a dedicated VM. For now, the free tier handles everything with no operational overhead.

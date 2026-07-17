@@ -74,7 +74,7 @@ into `homelab-iac`, validating recovery and service reconstruction flows,
 improving backup and restore discipline, and continuing to separate live
 authority from proposal and validation workflows.
 
-Phred remains independently evidenced AI infrastructure work. The Homelab is
+[Phred](/projects/phred/) remains independently evidenced AI infrastructure work. The Homelab is
 the broader operating environment around it, and future Phred rebuild work will
 need its own validation before I present it as managed infrastructure.
 

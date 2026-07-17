@@ -35,7 +35,7 @@ But the shift doesn't just redistribute responsibility. It opens something. When
 
 Here's what that looks like in practice.
 
-I built a system for running this series. Not just a writing workflow -- a session structure, a set of templates, a way of moving an article from idea to published post in discrete phases with clear handoffs. Each session type has a brief format and a set of outputs. I know what Session A produces and what Session B needs from it. The system doesn't write the posts; I write the posts. But the scaffolding means I spend almost no overhead on process. The infrastructure handles the logistics. I handle the thinking.
+I built a [system for running this series](/projects/userspace/). Not just a writing workflow -- a session structure, a set of templates, a way of moving an article from idea to published post in discrete phases with clear handoffs. Each session type has a brief format and a set of outputs. I know what Session A produces and what Session B needs from it. The system doesn't write the posts; I write the posts. But the scaffolding means I spend almost no overhead on process. The infrastructure handles the logistics. I handle the thinking.
 
 That system exists because AI made it cheap enough to build. Before, I would have kept the process in my head, reconstructed it imperfectly each time, and lost half the context between sessions. Building it properly would have taken longer than just doing it manually. That calculus flipped.
 

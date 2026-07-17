@@ -8,7 +8,7 @@ seriesPart: 1
 projectRef: "johnmcdougal-site"
 ---
 
-> **TL;DR:** I built this site with Claude as a collaborator, not a code generator -- here's what that distinction actually means in practice.
+> **TL;DR:** I built [this site](/projects/johnmcdougal-site/) with Claude as a collaborator, not a code generator -- here's what that distinction actually means in practice.
 
 This didn't start as "let's build a website."
 

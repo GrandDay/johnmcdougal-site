@@ -13,9 +13,9 @@ My name is John. I am a Sacramento-based IT consultant, homelabber, and chronic 
 
 ## What you will find here
 
-**Projects** -- things I am actively building or have built: homelab infrastructure, self-hosted services, knowledge systems, and the occasional rabbit hole that turned into something real.
+**[Projects](/projects/)** -- things I am actively building or have built: homelab infrastructure, self-hosted services, knowledge systems, and the occasional rabbit hole that turned into something real.
 
-**Posts** -- the thinking behind the projects. How I got there, what broke, what I would do differently, and what I am still figuring out. Process over polish.
+**[Posts](/blog/)** -- the thinking behind the projects. How I got there, what broke, what I would do differently, and what I am still figuring out. Process over polish.
 
 **Stacks and tools** -- the actual stuff I run and why. If you are building something similar, hopefully something here saves you an afternoon.
 
