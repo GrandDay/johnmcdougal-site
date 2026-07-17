@@ -5,22 +5,39 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
+import { getSeriesGroups } from '../lib/series';
 
 type Props = CollectionEntry<'blog'>['data'] & { id: string };
 
-const { title, description, pubDate, updatedDate, heroImage, tags, series, seriesPart, id } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, tags, series, seriesPart, projectRef, id } = Astro.props;
 const socialImage = heroImage || undefined;
 
 const allPosts = await getCollection('blog');
+const allProjects = await getCollection('projects');
 
-// Series nav
-const seriesPosts = series
-  ? allPosts
-    .filter((p) => p.data.series === series)
-    .sort((a, b) => (a.data.seriesPart ?? 0) - (b.data.seriesPart ?? 0))
-  : [];
-const seriesPrev = seriesPart ? seriesPosts.find((p) => p.data.seriesPart === seriesPart - 1) : undefined;
-const seriesNext = seriesPart ? seriesPosts.find((p) => p.data.seriesPart === seriesPart + 1) : undefined;
+const seriesGroups = getSeriesGroups(allPosts);
+const seriesGroup = series
+  ? seriesGroups.find((group) => group.key === series)
+  : undefined;
+const currentSeriesIndex = seriesGroup
+  ? seriesGroup.members.findIndex((post) => post.id === id)
+  : -1;
+if (seriesGroup && currentSeriesIndex < 0) {
+  throw new Error(`Series "${seriesGroup.key}" does not contain current entry "${id}".`);
+}
+const seriesPrev = currentSeriesIndex > 0
+  ? seriesGroup?.members[currentSeriesIndex - 1]
+  : undefined;
+const seriesNext = seriesGroup && currentSeriesIndex < seriesGroup.members.length - 1
+  ? seriesGroup.members[currentSeriesIndex + 1]
+  : undefined;
+
+const relatedProject = projectRef
+  ? allProjects.find((project) => project.id === projectRef)
+  : undefined;
+if (projectRef && !relatedProject) {
+  throw new Error(`Blog entry "${id}" references missing public project "${projectRef}".`);
+}
 
 const related = allPosts
 .filter((p) => p.id !== id && p.data.tags.some((t) => tags.includes(t)))
@@ -119,20 +136,38 @@ color: var(--accent);
 margin: 0 0 0.4em;
 }
 
-/* Series nav */
-.series-nav {
-margin-top: 2.5em;
+/* Series navigation */
+.series-context {
+margin-top: 2.75em;
 padding-top: 1.5em;
 border-top: 1px solid rgba(128,128,128,0.15);
-display: flex;
-justify-content: space-between;
+}
+.series-context-heading {
+margin-bottom: 1.25em;
+}
+.series-context-heading h2 {
+font-size: 1.15rem;
+margin: 0 0 0.35em;
+padding: 0;
+border: 0;
+}
+.series-context-heading p {
+font-size: 0.9rem;
+line-height: 1.55;
+color: var(--text-muted);
+margin: 0;
+}
+.series-nav {
+display: grid;
+grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 gap: 1em;
+margin-bottom: 1.5em;
 }
 .series-nav-item {
 display: flex;
 flex-direction: column;
 gap: 0.2em;
-max-width: 48%;
+min-width: 0;
 }
 .series-nav-item.next { align-items: flex-end; text-align: right; }
 .series-nav-dir {
@@ -144,11 +179,94 @@ color: var(--text-muted);
 }
 .series-nav-link {
 font-size: 0.9rem;
+display: flex;
+align-items: center;
+min-height: 44px;
 color: var(--text);
 text-decoration: none;
 transition: color 0.15s;
 }
 .series-nav-link:hover { color: var(--accent); }
+.series-nav-link:focus-visible,
+.series-index a:focus-visible,
+.related-project a:focus-visible {
+outline: 2px solid var(--accent);
+outline-offset: 3px;
+border-radius: 2px;
+}
+.series-nav-spacer { min-width: 0; }
+.series-index-label {
+font-size: 0.7rem;
+font-weight: 700;
+letter-spacing: 0.1em;
+text-transform: uppercase;
+color: var(--text-muted);
+margin: 0 0 0.6em;
+}
+.series-index {
+list-style: none;
+padding: 0;
+margin: 0;
+border-top: 1px solid rgba(128,128,128,0.12);
+}
+.series-index li {
+display: grid;
+grid-template-columns: 3.75em minmax(0, 1fr);
+gap: 0.75em;
+align-items: center;
+min-height: 44px;
+padding: 0.45em 0.6em;
+border-bottom: 1px solid rgba(128,128,128,0.12);
+}
+.series-index li[aria-current='page'] {
+border-left: 3px solid var(--accent);
+background: var(--bg-secondary);
+padding-left: calc(0.6em - 3px);
+font-weight: 700;
+}
+.series-part {
+font-size: 0.7rem;
+font-weight: 700;
+text-transform: uppercase;
+color: var(--text-muted);
+}
+.series-index a {
+display: flex;
+align-items: center;
+min-height: 44px;
+color: var(--text);
+text-decoration: none;
+line-height: 1.35;
+}
+.series-index a:hover { color: var(--accent); }
+.series-current-title {
+display: flex;
+align-items: baseline;
+justify-content: space-between;
+gap: 0.75em;
+line-height: 1.35;
+}
+.series-current-marker {
+flex: 0 0 auto;
+font-size: 0.68rem;
+font-weight: 700;
+text-transform: uppercase;
+letter-spacing: 0.04em;
+color: var(--text-muted);
+}
+.related-project {
+margin-top: 1.5em;
+padding-top: 1.25em;
+border-top: 1px solid rgba(128,128,128,0.12);
+}
+.related-project p {
+margin: 0;
+font-size: 0.9rem;
+color: var(--text-muted);
+}
+.related-project a {
+font-weight: 700;
+}
 
 /* Post tags */
 .post-tags {
@@ -208,6 +326,31 @@ background: var(--bg-secondary);
 padding: 0.1em 0.45em;
 border-radius: 999px;
 }
+@media (max-width: 520px) {
+.series-nav {
+grid-template-columns: 1fr;
+gap: 0.85em;
+}
+.series-nav-spacer { display: none; }
+.series-nav-item.next {
+align-items: flex-start;
+text-align: left;
+}
+.series-index li {
+grid-template-columns: 3.25em minmax(0, 1fr);
+gap: 0.55em;
+padding-left: 0.4em;
+padding-right: 0.4em;
+}
+.series-index li[aria-current='page'] {
+padding-left: calc(0.4em - 3px);
+}
+.series-current-title {
+align-items: flex-start;
+flex-direction: column;
+gap: 0.15em;
+}
+}
 </style>
 </head>
 
@@ -221,8 +364,8 @@ border-radius: 999px;
 <div class="prose">
 <div class="title">
 <div class="date">
-{series && seriesPart && (
-<p class="series-label">{series} -- Part {seriesPart}</p>
+{seriesGroup && seriesPart && (
+<p class="series-label">{seriesGroup.definition.label} -- Part {seriesPart}</p>
 )}
 <FormattedDate date={pubDate} />
 {updatedDate && (
@@ -234,21 +377,55 @@ Last updated on <FormattedDate date={updatedDate} />
 <h1>{title}</h1>
 </div>
 <slot />
-{(seriesPrev || seriesNext) && (
-<div class="series-nav">
-  {seriesPrev ? (
-    <div class="series-nav-item prev">
-      <span class="series-nav-dir">&larr; Previous</span>
-      <a href={`/blog/${seriesPrev.id}`} class="series-nav-link">{seriesPrev.data.title}</a>
-    </div>
-  ) : <div />}
-  {seriesNext ? (
-    <div class="series-nav-item next">
-      <span class="series-nav-dir">Next &rarr;</span>
-      <a href={`/blog/${seriesNext.id}`} class="series-nav-link">{seriesNext.data.title}</a>
-    </div>
-  ) : <div />}
+{seriesGroup && (
+<section
+  class="series-context"
+  aria-labelledby="in-this-series-heading"
+  data-series-module={seriesGroup.key}
+>
+<div class="series-context-heading">
+  <h2 id="in-this-series-heading">In this series: {seriesGroup.definition.label}</h2>
+  <p>{seriesGroup.definition.description}</p>
 </div>
+<nav class="series-nav" aria-label={`${seriesGroup.definition.label} previous and next articles`}>
+  {seriesPrev ? (
+    <div class="series-nav-item prev" data-series-prev={seriesPrev.id}>
+      <span class="series-nav-dir">&larr; Previous</span>
+      <a href={`/blog/${seriesPrev.id}/`} class="series-nav-link">{seriesPrev.data.title}</a>
+    </div>
+  ) : <span class="series-nav-spacer" aria-hidden="true"></span>}
+  {seriesNext ? (
+    <div class="series-nav-item next" data-series-next={seriesNext.id}>
+      <span class="series-nav-dir">Next &rarr;</span>
+      <a href={`/blog/${seriesNext.id}/`} class="series-nav-link">{seriesNext.data.title}</a>
+    </div>
+  ) : <span class="series-nav-spacer" aria-hidden="true"></span>}
+</nav>
+<p class="series-index-label">Complete series</p>
+<ol class="series-index">
+  {seriesGroup.members.map((post) => (
+    post.id === id ? (
+      <li aria-current="page" data-series-current={post.id}>
+        <span class="series-part">Part {post.data.seriesPart}</span>
+        <span class="series-current-title">
+          <span>{post.data.title}</span>
+          <span class="series-current-marker">Current article</span>
+        </span>
+      </li>
+    ) : (
+      <li data-series-index-item={post.id}>
+        <span class="series-part">Part {post.data.seriesPart}</span>
+        <a href={`/blog/${post.id}/`}>{post.data.title}</a>
+      </li>
+    )
+  ))}
+</ol>
+</section>
+)}
+{relatedProject && (
+<aside class="related-project" data-related-project={relatedProject.id}>
+  <p>Related project: <a href={`/projects/${relatedProject.id}/`}>{relatedProject.data.title}</a></p>
+</aside>
 )}
 {tags.length > 0 && (
 <div class="post-tags">

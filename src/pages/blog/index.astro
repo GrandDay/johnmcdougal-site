@@ -5,6 +5,7 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE } from '../../consts';
+import { getSeriesGroups } from '../../lib/series';
 
 const pageDescription =
 	'Essays and technical notes on systems, documentation, AI workflows, Cloudflare, email infrastructure, and building johnmcdougal.com.';
@@ -12,6 +13,7 @@ const pageDescription =
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
+const seriesGroups = getSeriesGroups(posts);
 
 const tagMap = new Map<string, number>();
 posts.forEach((post) => {
@@ -45,33 +47,65 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 				<p style="color: var(--text-muted)">Nothing published yet — something is always in the draft pile. Check back soon.</p>
 			)}
 
-			<ul class="post-list">
-				{posts.map((post) => (
-					<li>
-						<a href={`/blog/${post.id}/`} class="post-card">
-							<div class="post-header">
-								<h2>{post.data.title}</h2>
-								{post.data.series && post.data.seriesPart && (
-									<span class="series-badge">Part {post.data.seriesPart}</span>
-								)}
+			<section class="series-organizer" aria-labelledby="series-heading" data-series-organizer>
+				<div class="section-heading">
+					<h2 id="series-heading">Series</h2>
+					<p>Follow each collection in order, or continue to the complete chronological index.</p>
+				</div>
+				<div class="series-list">
+					{seriesGroups.map(({ key, definition, members }) => (
+						<article class="series-entry" data-series-group={key}>
+							<div class="series-entry-heading">
+								<h3>{definition.label}</h3>
+								<span>{members.length} posts</span>
 							</div>
-							{post.data.description && (
-								<p class="post-desc">{post.data.description}</p>
-							)}
-							<div class="post-meta">
-								<span class="date"><FormattedDate date={post.data.pubDate} /></span>
-								{post.data.tags.length > 0 && (
-									<div class="post-tags">
-										{post.data.tags.map((tag) => (
-											<span class="tag-label">{tag}</span>
-										))}
-									</div>
+							<p>{definition.description}</p>
+							<ol>
+								{members.map((post) => (
+									<li data-series-member={post.id}>
+										<span>Part {post.data.seriesPart}</span>
+										<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+									</li>
+								))}
+							</ol>
+						</article>
+					))}
+				</div>
+			</section>
+
+			<section aria-labelledby="all-writing-heading" data-chronological-index>
+				<div class="section-heading all-writing-heading">
+					<h2 id="all-writing-heading">All writing</h2>
+					<p>Every post in reverse chronological order.</p>
+				</div>
+				<ul class="post-list">
+					{posts.map((post) => (
+						<li data-chronological-post={post.id}>
+							<a href={`/blog/${post.id}/`} class="post-card">
+								<div class="post-header">
+									<h3>{post.data.title}</h3>
+									{post.data.series && post.data.seriesPart && (
+										<span class="series-badge">Part {post.data.seriesPart}</span>
+									)}
+								</div>
+								{post.data.description && (
+									<p class="post-desc">{post.data.description}</p>
 								)}
-							</div>
-						</a>
-					</li>
-				))}
-			</ul>
+								<div class="post-meta">
+									<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+									{post.data.tags.length > 0 && (
+										<div class="post-tags">
+											{post.data.tags.map((tag) => (
+												<span class="tag-label">{tag}</span>
+											))}
+										</div>
+									)}
+								</div>
+							</a>
+						</li>
+					))}
+				</ul>
+			</section>
 		</main>
 		<Footer />
 	</body>
@@ -91,6 +125,96 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 		margin-bottom: 2em;
 		padding-bottom: 1.5em;
 		border-bottom: 1px solid var(--border);
+	}
+	.section-heading {
+		margin-bottom: 1em;
+	}
+	.section-heading h2 {
+		font-size: 1.35em;
+		margin-bottom: 0.2em;
+	}
+	.section-heading p {
+		margin: 0;
+		color: var(--text-muted);
+		font-size: 0.95em;
+	}
+	.series-organizer {
+		margin-bottom: 3em;
+	}
+	.series-list {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		border-top: 1px solid var(--border);
+		border-bottom: 1px solid var(--border);
+	}
+	.series-entry {
+		padding: 1.25em 1.5em 1.5em 0;
+		min-width: 0;
+	}
+	.series-entry + .series-entry {
+		padding-left: 1.5em;
+		padding-right: 0;
+		border-left: 1px solid var(--border);
+	}
+	.series-entry-heading {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1em;
+		margin-bottom: 0.45em;
+	}
+	.series-entry-heading h3 {
+		font-size: 1.05em;
+		margin: 0;
+	}
+	.series-entry-heading span {
+		flex: 0 0 auto;
+		font-size: 0.75em;
+		color: var(--text-muted);
+	}
+	.series-entry > p {
+		margin: 0 0 1em;
+		color: var(--text-muted);
+		font-size: 0.9em;
+		line-height: 1.55;
+	}
+	.series-entry ol {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.series-entry li {
+		display: grid;
+		grid-template-columns: 3.6em minmax(0, 1fr);
+		gap: 0.75em;
+		align-items: center;
+		min-height: 44px;
+		border-bottom: 1px solid rgba(128,128,128,0.1);
+	}
+	.series-entry li:last-child {
+		border-bottom: 0;
+	}
+	.series-entry li > span {
+		font-size: 0.72em;
+		font-weight: 700;
+		color: var(--text-muted);
+		text-transform: uppercase;
+	}
+	.series-entry a {
+		display: flex;
+		align-items: center;
+		min-height: 44px;
+		color: var(--text);
+		font-size: 0.9em;
+		line-height: 1.35;
+	}
+	.series-entry a:hover,
+	.series-entry a:focus-visible {
+		color: var(--accent);
+		text-decoration: underline;
+	}
+	.all-writing-heading {
+		margin-bottom: 1em;
 	}
 	.post-list {
 		list-style: none;
@@ -114,7 +238,7 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 	.post-card:hover {
 		background: var(--bg);
 	}
-	.post-card:hover h2 {
+	.post-card:hover h3 {
 		color: var(--accent);
 	}
 	.post-header {
@@ -123,7 +247,7 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 		gap: 0.75em;
 		margin-bottom: 0.25em;
 	}
-	h2 {
+	.post-header h3 {
 		font-size: 1.1em;
 		margin: 0;
 		transition: color 0.15s ease;
@@ -155,5 +279,37 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 		padding: 0.15em 0.5em;
 		border-radius: 999px;
 		border: 1px solid var(--border);
+	}
+	@media (max-width: 640px) {
+		.series-list {
+			display: block;
+		}
+		.series-entry,
+		.series-entry + .series-entry {
+			padding: 1.1em 0 1.25em;
+			border-left: 0;
+		}
+		.series-entry + .series-entry {
+			border-top: 1px solid var(--border);
+		}
+	}
+	@media (max-width: 420px) {
+		.series-entry-heading {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.2em;
+		}
+		.series-entry li {
+			grid-template-columns: 3.25em minmax(0, 1fr);
+			gap: 0.55em;
+		}
+		.post-card {
+			padding: 1em;
+		}
+		.post-header {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.4em;
+		}
 	}
 </style>

@@ -15,6 +15,26 @@ const blog = defineCollection({
       series: z.string().optional(),
       seriesPart: z.number().optional(),
       projectRef: z.string().optional(),
+    }).superRefine((entry, ctx) => {
+      const hasSeries = entry.series !== undefined;
+      const hasSeriesPart = entry.seriesPart !== undefined;
+
+      if (hasSeries !== hasSeriesPart) {
+        ctx.addIssue({
+          code: 'custom',
+          path: hasSeries ? ['seriesPart'] : ['series'],
+          message: `Series metadata must be paired; received series=${JSON.stringify(entry.series)} and seriesPart=${JSON.stringify(entry.seriesPart)}.`,
+        });
+      }
+
+      const { seriesPart } = entry;
+      if (seriesPart !== undefined && (!Number.isInteger(seriesPart) || seriesPart < 1)) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['seriesPart'],
+          message: `seriesPart for series ${JSON.stringify(entry.series)} must be a positive integer; received ${JSON.stringify(seriesPart)}.`,
+        });
+      }
     }),
 });
 

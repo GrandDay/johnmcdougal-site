@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
@@ -6,9 +7,34 @@ const root = process.cwd();
 const dist = path.resolve(root, process.env.VERIFY_BUILD_DIST ?? 'dist');
 const site = 'https://johnmcdougal.com';
 const failures = [];
+const expectedSeries = [
+	{
+		key: 'How I built johnmcdougal.com',
+		label: 'How I Built johnmcdougal.com',
+		description: 'How this Astro site, its analytics, and its custom-domain email infrastructure were built and hardened.',
+	},
+	{
+		key: 'Working with AI in 2026',
+		label: 'Working with AI in 2026',
+		description: 'A practical series on context, iteration, prompts, reusable workflows, and human judgment in AI-assisted work.',
+	},
+];
+const standalonePost = 'hello-world';
 
 function fail(message) {
 	failures.push(message);
+}
+
+function countMatches(value, pattern) {
+	return [...value.matchAll(pattern)].length;
+}
+
+function sortedHash(values) {
+	return createHash('sha256').update(JSON.stringify([...values].sort())).digest('hex');
+}
+
+function attributeValue(html, attribute) {
+	return html.match(new RegExp(`${attribute}="([^"]+)"`))?.[1] ?? null;
 }
 
 function filePath(...parts) {
@@ -110,9 +136,167 @@ for (const forbidden of [`${site}/tags/AI/`, `${site}/projects/homelab-iac/`]) {
 	}
 }
 
+if (sitemapLocs.length !== 79) {
+	fail(`Sitemap route count changed: expected 79, found ${sitemapLocs.length}.`);
+}
+
+const tagDetailLocs = sitemapLocs.filter((loc) => {
+	const pathname = new URL(loc).pathname;
+	return pathname.startsWith('/tags/') && pathname !== '/tags/';
+});
+if (tagDetailLocs.length !== 54) {
+	fail(`Tag detail route count changed: expected 54, found ${tagDetailLocs.length}.`);
+}
+
+const blogIndex = readRequired('blog/index.html');
+const chronologicalIds = [...blogIndex.matchAll(/data-chronological-post="([^"]+)"/g)]
+	.map((match) => match[1]);
+if (chronologicalIds.length !== 13 || new Set(chronologicalIds).size !== 13) {
+	fail(`Chronological Writing index must contain 13 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
+}
+
+if (countMatches(blogIndex, /data-series-group=/g) !== 2) {
+	fail('Writing index must render exactly two series groups.');
+}
+if (countMatches(blogIndex, /data-series-member=/g) !== 12) {
+	fail('Writing index must render exactly twelve ordered series-member links.');
+}
+
+const membersBySeries = new Map();
+for (const series of expectedSeries) {
+	const groupStart = blogIndex.indexOf(`data-series-group="${series.key}"`);
+	if (groupStart < 0) {
+		fail(`Writing index is missing series group "${series.key}".`);
+		continue;
+	}
+	const groupEnd = blogIndex.indexOf('</article>', groupStart);
+	const groupHtml = groupEnd >= 0 ? blogIndex.slice(groupStart, groupEnd) : '';
+	const members = [...groupHtml.matchAll(/data-series-member="([^"]+)"/g)].map((match) => match[1]);
+	membersBySeries.set(series.key, members);
+	if (members.length !== 6 || new Set(members).size !== 6) {
+		fail(`Writing index series "${series.key}" must contain six unique ordered members; found ${members.length}.`);
+	}
+	if (!groupHtml.includes(`>${series.label}</h3>`)) {
+		fail(`Writing index is missing public label "${series.label}".`);
+	}
+	if (!blogIndex.includes(series.description)) {
+		fail(`Writing index is missing the description for series "${series.key}".`);
+	}
+}
+
+const orderedSeriesIds = expectedSeries.flatMap((series) => membersBySeries.get(series.key) ?? []);
+if (new Set(orderedSeriesIds).size !== 12) {
+	fail('Series organizer contains a duplicate member across series.');
+}
+const standaloneIds = chronologicalIds.filter((id) => !orderedSeriesIds.includes(id));
+if (standaloneIds.length !== 1 || standaloneIds[0] !== standalonePost) {
+	fail(`Expected only standalone post "${standalonePost}"; found ${standaloneIds.join(', ') || 'none'}.`);
+}
+
+const relatedProjectResults = [];
+for (const series of expectedSeries) {
+	const members = membersBySeries.get(series.key) ?? [];
+	for (const [index, id] of members.entries()) {
+		const route = `/blog/${id}/`;
+		assertRoute(route);
+		if (!sitemapLocs.includes(expectedCanonical(route))) {
+			fail(`Sitemap missing blog route: ${expectedCanonical(route)}`);
+		}
+
+		const html = readRequired(routeFile(route));
+		if (countMatches(html, /data-series-module=/g) !== 1) {
+			fail(`Series entry "${id}" must render exactly one series module.`);
+		}
+		if (!html.includes(`data-series-current="${id}"`) || !html.includes('aria-current="page"')) {
+			fail(`Series entry "${id}" is missing its semantic current-article state.`);
+		}
+
+		const renderedMemberCount =
+			countMatches(html, /data-series-index-item=/g) + countMatches(html, /data-series-current=/g);
+		if (renderedMemberCount !== members.length) {
+			fail(`Series entry "${id}" renders ${renderedMemberCount} index members; expected ${members.length}.`);
+		}
+
+		const expectedPrev = members[index - 1] ?? null;
+		const expectedNext = members[index + 1] ?? null;
+		const actualPrev = attributeValue(html, 'data-series-prev');
+		const actualNext = attributeValue(html, 'data-series-next');
+		if (actualPrev !== expectedPrev) {
+			fail(`Series entry "${id}" previous mismatch: expected ${expectedPrev ?? 'none'}, found ${actualPrev ?? 'none'}.`);
+		}
+		if (actualNext !== expectedNext) {
+			fail(`Series entry "${id}" next mismatch: expected ${expectedNext ?? 'none'}, found ${actualNext ?? 'none'}.`);
+		}
+
+		const actualProject = attributeValue(html, 'data-related-project');
+		if (actualProject) relatedProjectResults.push({ id, project: actualProject });
+	}
+}
+
+const standaloneRoute = `/blog/${standalonePost}/`;
+assertRoute(standaloneRoute);
+const standaloneHtml = readRequired(routeFile(standaloneRoute));
+if (/data-series-module=|data-series-current=|data-series-prev=|data-series-next=/.test(standaloneHtml)) {
+	fail(`Standalone post "${standalonePost}" renders series navigation.`);
+}
+if (standaloneHtml.includes('data-related-project=')) {
+	fail(`Standalone post "${standalonePost}" renders a fabricated related project.`);
+}
+
+if (
+	relatedProjectResults.length !== 6 ||
+	relatedProjectResults.some(({ project }) => project !== 'johnmcdougal-site')
+) {
+	fail(`Expected six resolved johnmcdougal-site relationships; found ${JSON.stringify(relatedProjectResults)}.`);
+}
+
+for (const id of chronologicalIds) {
+	const raw = readRequired(`blog/${id}.md`);
+	const frontmatter = raw.match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1] ?? '';
+	if (!frontmatter.includes(`canonical: ${site}/blog/${id}/`)) {
+		fail(`Raw Markdown canonical mismatch for "${id}".`);
+	}
+	if (/^(series|seriesPart|projectRef):/m.test(frontmatter)) {
+		fail(`Raw Markdown contract changed for "${id}": relationship metadata was exposed.`);
+	}
+}
+
 const rss = readRequired('rss.xml');
 if (!/<rss[\s>]/i.test(rss) || !/<item>/i.test(rss)) {
 	fail('RSS output is missing an rss root or item entries.');
+}
+const rssItems = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((match) => match[1]);
+if (rssItems.length !== 13) {
+	fail(`RSS item count changed: expected 13, found ${rssItems.length}.`);
+}
+const rssDates = rssItems.map((item) => {
+	const value = item.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1];
+	return value ? Date.parse(value) : Number.NaN;
+});
+if (rssDates.some(Number.isNaN)) {
+	fail('RSS contains an item without a valid publication date.');
+} else {
+	for (let index = 1; index < rssDates.length; index += 1) {
+		if (rssDates[index] > rssDates[index - 1]) {
+			fail(`RSS is not newest-first at item ${index + 1}.`);
+			break;
+		}
+	}
+}
+
+const llms = readRequired('llms.txt');
+for (const series of expectedSeries) {
+	if (!llms.includes(`### Series: ${series.key}`)) {
+		fail(`llms.txt is missing series "${series.key}".`);
+	}
+	for (const id of membersBySeries.get(series.key) ?? []) {
+		if (!llms.includes(`${site}/blog/${id}/`)) {
+			fail(`llms.txt is missing series member "${id}".`);
+		}
+	}
+}
+if (!llms.includes(`${site}/blog/${standalonePost}/`)) {
+	fail(`llms.txt is missing standalone post "${standalonePost}".`);
 }
 
 const graphText = readRequired('graph.json');
@@ -152,6 +336,28 @@ if (graph) {
 
 	if (!Array.isArray(graph.edges)) {
 		fail('graph.json edges is not an array.');
+	}
+
+	if (graph.nodes?.length !== 73) {
+		fail(`Graph node count changed: expected 73, found ${graph.nodes?.length ?? 'none'}.`);
+	}
+	if (graph.edges?.length !== 118) {
+		fail(`Graph edge count changed: expected 118, found ${graph.edges?.length ?? 'none'}.`);
+	}
+
+	if (Array.isArray(graph.nodes)) {
+		const nodeHash = sortedHash(graph.nodes.map((node) => node.id));
+		const expectedNodeHash = '64929af1d51e23236a409a64c0b546a9f2bee4745157a16ed0696cff08cc2ed4';
+		if (nodeHash !== expectedNodeHash) {
+			fail(`Graph node-ID set changed: expected ${expectedNodeHash}, found ${nodeHash}.`);
+		}
+	}
+	if (Array.isArray(graph.edges)) {
+		const endpointHash = sortedHash(graph.edges.map((edge) => `${edge.source}->${edge.target}`));
+		const expectedEndpointHash = '2af38e9665bfb034cfed62307a1e950ae571c0305a4a2a3ac6fb37e2bb8b0fad';
+		if (endpointHash !== expectedEndpointHash) {
+			fail(`Graph edge-endpoint set changed: expected ${expectedEndpointHash}, found ${endpointHash}.`);
+		}
 	}
 }
 
