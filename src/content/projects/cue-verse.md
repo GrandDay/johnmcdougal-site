@@ -8,55 +8,63 @@ tags: ["knowledge-management", "notion", "obsidian", "homelab", "self-hosted", "
 
 ## What this is
 
-CUE-Verse is the context layer of the homelab. It is the framework that
-gives the lab depth and linked memory -- the difference between a pile of
-running VMs and a system that means something.
+CUE-Verse is the framework I use to keep infrastructure decisions,
+documentation, validation notes, and working context connected across the lab.
+It started with the way CUE-Lang made me think about schemas, validation, and
+configuration, but the current project is broader than a CUE-language codebase.
 
-The name comes from CUE-Lang, a Go schema validation language that changed the way I think about schemas, documents, and structured systems -- using the same language to define data, validate it, and generate configuration from it. The project took off before CUE-Lang was fully integrated into the stack, so the implementation lags the inspiration, but the name stuck (it's in too many places now to change). CUE-Verse is what that thinking grew into: the context layer that holds the whole lab together.
+The implemented work is documentation, source-of-truth design, Git-backed
+review practice, repository planning, runbooks, validation checklists,
+inventory discipline, diagrams, and repeatable operating notes around the
+systems I actually run and rebuild.
 
 ## Why it exists
 
-I was trying to build the mental palace -- the greek philosophy version,
-placing terms, concepts, and layers and networking them effectively. It was
-not working. The moment that broke it open was accidentally trying to chase
-too many new idea directions at once while also running lab projects and
-grinding through the Security+ exam. Head full, threads everywhere, no
-connective tissue.
+I was trying to build the mental palace -- the Greek philosophy version:
+placing terms, concepts, and layers so they could connect instead of piling up.
+That broke open while I was running lab projects, studying, and chasing too
+many technical threads at once. I needed a way to keep the reasoning attached
+to the infrastructure.
 
-CUE-Verse is the vehicle I built toward that end. Something to put the
-learned things into, to bounce ideas across, to hold the seams between
-self-taught instinct and the formal knowledge I am actively backfilling
-through college.
+CUE-Verse is that connective layer. It gives me a place to record what a system
+is supposed to do, what actually exists, what was validated, what remains a
+plan, and which repository or workflow owns the next change.
 
 ## Current state
 
-CUE-Verse spans several layers, which is part of why it is hard to describe:
+CUE-Verse is applied most concretely through [The Homelab](/projects/homelab/).
+The lab provides the operational evidence; CUE-Verse provides the structure
+that keeps documentation, validation, and change authority understandable.
 
-**Knowledge layer**
-- Notion and Obsidian: both in active use, responsibilities between
-  them currently being redefined as the system matures
+The current practice includes Notion and Obsidian for different access planes,
+Git-backed repositories for accepted artifacts, source-of-truth boundaries,
+runbooks, command/review workflows, validation records, and documentation that
+can survive beyond a single tool interface. I use Ansible, Bash, PowerShell,
+Docker Compose, Git, and configuration-as-code patterns where they have been
+implemented or validated.
 
-**Storage layer**
-- Synology NAS: NFS and SMB to lab and workstation hosts, cache config
-- TrueNAS Scale NAS: flash storage via WebDAV, NFS, SMB, and iSCSI
-  for lab and workstation workflows
+## Evidence boundary
 
-**Compute and deployment layer**
-- Dokploy on a Proxmox VM, a TrueNAS Scale VM, and a physical Ubuntu host
-- Synology Active Backup for home user backups, low friction by design
-- PBS handling lab and CUE-Verse backup needs
+CUE-Verse currently combines operational documentation practice with design
+work. I label target architecture as target architecture: self-healing
+operation, multi-site patterns, universal automation, production-grade high
+availability, and a complete CUE-to-infrastructure compiler pipeline remain
+future architecture unless I publish implementation evidence for them.
 
-**Userspace project**
-- The tools, stacks, and operating environments across hosts
-- Self-hosted storage access and ZTNA integration
-- The layer where daily work actually happens
+The distinction matters because the project is partly operational practice and
+partly design work. The public page should show the working framework and keep
+draft architecture labeled as draft architecture.
 
-## What I am figuring out
+## Next work
 
-- How to accurately describe a system this broad without losing
-  the thread for someone reading it for the first time
-- How the userspace project integrates cleanly across CUE-Verse layers
-  as both grow
-- Building the Notion workflows out properly (certs on the list)
-- How knowledge captured in Notion and Obsidian feeds back into the
-  lab and the userspace, and vice versa -- closing the loop
+The next work is to keep extracting reusable patterns from the lab while
+preserving clear project boundaries: clearer authority records,
+better validation checklists, cleaner repository handoffs, and documentation
+that can explain the difference between current systems, validated
+experiments, rebuild work, and target architecture.
+
+## Related projects
+
+- [The Homelab](/projects/homelab/) is the operational environment where these documentation and validation practices are applied.
+- [Phred](/projects/phred/) is a focused AI-infrastructure project that benefits from the same evidence and rebuild discipline.
+- [Userspace](/projects/userspace/) is the working environment for notes, repositories, prompts, and review boundaries.
