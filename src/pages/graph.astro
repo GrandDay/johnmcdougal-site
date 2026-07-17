@@ -56,7 +56,7 @@ import { SITE_TITLE } from '../consts';
       position: relative;
       width: 100%;
       height: calc(100vh - 56px - 200px);
-      min-height: 500px;
+      min-height: 560px;
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
       background: var(--bg-secondary);
@@ -92,6 +92,9 @@ import { SITE_TITLE } from '../consts';
       letter-spacing: 0.05em;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) {
+      .spinner { animation: none; }
+    }
     /* Tooltip */
     #graph-tooltip {
       position: fixed;
@@ -115,8 +118,21 @@ import { SITE_TITLE } from '../consts';
       font-size: 0.78rem;
       color: var(--text-muted);
     }
+    #graph-svg :global(.graph-label) {
+      fill: var(--text-muted);
+      font-size: 0.68rem;
+      paint-order: stroke;
+      stroke: var(--bg-secondary);
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
+    #graph-svg :global(.graph-node:focus-visible) {
+      outline: none;
+      stroke: var(--text);
+      stroke-width: 2.5px;
+    }
     @media (max-width: 720px) {
-      .graph-container { height: calc(100vh - 56px - 260px); min-height: 400px; }
+      .graph-container { height: calc(100vh - 56px - 260px); min-height: 460px; }
       .legend { gap: 1rem; }
     }
   </style>
@@ -182,23 +198,33 @@ import { SITE_TITLE } from '../consts';
     const svgEl = document.getElementById('graph-svg');
     const tooltip = document.getElementById('graph-tooltip');
     const spinnerWrap = document.getElementById('spinner-wrap');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    let width = container.clientWidth;
+    let height = container.clientHeight;
 
     const svg = d3.select(svgEl)
       .attr('viewBox', `0 0 ${width} ${height}`);
 
     // Zoom + pan
     const g = svg.append('g');
-    svg.call(
-      d3.zoom()
-        .scaleExtent([0.2, 4])
-        .on('zoom', (event) => g.attr('transform', event.transform))
-    );
+    const zoomBehavior = d3.zoom()
+      .scaleExtent([0.25, 4])
+      .on('zoom', (event) => g.attr('transform', event.transform));
+    svg.call(zoomBehavior);
 
     const nodeRadius = (d) => d.type === 'project' ? 12 : d.type === 'post' ? 8 : 5;
     const nodeColor = (d) => d.type === 'project' ? '#f59e0b' : d.type === 'post' ? '#2dd4bf' : '#64748b';
+    const maxLabelLength = () => width < 520 ? 24 : width < 900 ? 34 : 42;
+    const displayLabel = (d) => {
+      const limit = maxLabelLength();
+      return d.label.length > limit ? d.label.slice(0, limit - 1) + '\u2026' : d.label;
+    };
+    const labelOffset = (d) => nodeRadius(d) + 8;
+    const labelCollisionRadius = (d) => {
+      if (d.type === 'tag') return nodeRadius(d) + 12;
+      return nodeRadius(d) + Math.min(70, displayLabel(d).length * 2.4) + 12;
+    };
 
     // Edges
     const link = g.append('g')
@@ -219,6 +245,10 @@ import { SITE_TITLE } from '../consts';
       .attr('stroke', (d) => d.type === 'post' || d.type === 'project' ? 'rgba(0,0,0,0.15)' : 'none')
       .attr('stroke-width', 1)
       .attr('cursor', 'pointer')
+      .attr('class', 'graph-node')
+      .attr('tabindex', (d) => d.url ? 0 : null)
+      .attr('role', (d) => d.url ? 'link' : 'img')
+      .attr('aria-label', (d) => `${d.label} (${d.type})`)
       .call(
         d3.drag()
           .on('start', (event, d) => {
@@ -232,23 +262,30 @@ import { SITE_TITLE } from '../consts';
           })
       );
 
+    node.append('title')
+      .text((d) => d.label);
+
     // Labels for post + project nodes only
     const label = g.append('g')
       .selectAll('text')
       .data(data.nodes.filter((d) => d.type !== 'tag'))
       .join('text')
-      .attr('font-size', '10px')
-      .attr('fill', '#94a3b8')
+      .attr('class', 'graph-label')
       .attr('pointer-events', 'none')
-      .attr('dx', (d) => nodeRadius(d) + 4)
       .attr('dy', '0.35em')
-      .text((d) => d.label.length > 32 ? d.label.slice(0, 31) + '\u2026' : d.label);
+      .text(displayLabel);
+
+    const navigateToNode = (d) => {
+      if (d.url) window.location.href = d.url;
+    };
 
     // Tooltip
     node
       .on('mouseover', (event, d) => {
         tooltip.textContent = d.label;
         tooltip.style.display = 'block';
+        tooltip.style.left = (event.clientX + 14) + 'px';
+        tooltip.style.top = (event.clientY - 10) + 'px';
       })
       .on('mousemove', (event) => {
         tooltip.style.left = (event.clientX + 14) + 'px';
@@ -256,23 +293,48 @@ import { SITE_TITLE } from '../consts';
       })
       .on('mouseout', () => { tooltip.style.display = 'none'; })
       .on('click', (event, d) => {
-        if (d.url) window.location.href = d.url;
+        event.preventDefault();
+        navigateToNode(d);
+      })
+      .on('keydown', (event, d) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          navigateToNode(d);
+        }
       });
+
+    const fitGraphToViewport = () => {
+      const bounds = g.node().getBBox();
+      if (!bounds.width || !bounds.height) return;
+      const margin = width < 720 ? 28 : 44;
+      const scale = Math.min(
+        1,
+        (width - margin * 2) / bounds.width,
+        (height - margin * 2) / bounds.height
+      );
+      const x = width / 2 - scale * (bounds.x + bounds.width / 2);
+      const y = height / 2 - scale * (bounds.y + bounds.height / 2);
+      svg.transition()
+        .duration(reduceMotion ? 0 : 260)
+        .call(zoomBehavior.transform, d3.zoomIdentity.translate(x, y).scale(scale));
+    };
 
     // Simulation
     const simulation = d3.forceSimulation(data.nodes)
       .force('link',
         d3.forceLink(data.edges)
           .id((d) => d.id)
-          .distance((d) => d.type === 'projectRef' ? 90 : 55)
-          .strength((d) => d.type === 'projectRef' ? 1 : 0.4)
+          .distance((d) => d.type === 'projectRef' ? 130 : 82)
+          .strength((d) => d.type === 'projectRef' ? 0.8 : 0.32)
       )
       .force('charge',
         d3.forceManyBody()
-          .strength((d) => d.type === 'tag' ? -40 : d.type === 'project' ? -180 : -130)
+          .strength((d) => d.type === 'tag' ? -75 : d.type === 'project' ? -300 : -230)
       )
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collide', d3.forceCollide().radius((d) => nodeRadius(d) + 5))
+      .force('x', d3.forceX(width / 2).strength(0.035))
+      .force('y', d3.forceY(height / 2).strength(0.035))
+      .force('collide', d3.forceCollide().radius(labelCollisionRadius).iterations(2))
       .on('tick', () => {
         link
           .attr('x1', (d) => d.source.x)
@@ -283,12 +345,28 @@ import { SITE_TITLE } from '../consts';
           .attr('cx', (d) => d.x)
           .attr('cy', (d) => d.y);
         label
-          .attr('x', (d) => d.x)
-          .attr('y', (d) => d.y);
+          .attr('x', (d) => d.x + (d.x < width / 2 ? labelOffset(d) : -labelOffset(d)))
+          .attr('y', (d) => d.y)
+          .attr('text-anchor', (d) => d.x < width / 2 ? 'start' : 'end');
       })
       .on('end', () => {
         spinnerWrap.style.display = 'none';
+        fitGraphToViewport();
       });
+
+    window.addEventListener('resize', () => {
+      width = container.clientWidth;
+      height = container.clientHeight;
+      svg.attr('viewBox', `0 0 ${width} ${height}`);
+      label.text(displayLabel);
+      simulation
+        .force('center', d3.forceCenter(width / 2, height / 2))
+        .force('x', d3.forceX(width / 2).strength(0.035))
+        .force('y', d3.forceY(height / 2).strength(0.035))
+        .force('collide', d3.forceCollide().radius(labelCollisionRadius).iterations(2))
+        .alpha(0.35)
+        .restart();
+    });
   </script>
 </body>
 </html>
