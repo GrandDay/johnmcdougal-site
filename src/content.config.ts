@@ -1,6 +1,24 @@
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
+import { isUtcCalendarDate, isValidDateOrder } from './lib/content-dates.mjs';
+
+const calendarDate = z.coerce.date().refine(isUtcCalendarDate, {
+  message: 'Calendar dates must resolve to midnight UTC.',
+});
+
+function validateDateOrder(
+  entry: { pubDate: Date; updatedDate?: Date },
+  ctx: z.RefinementCtx,
+) {
+  if (!isValidDateOrder(entry.pubDate, entry.updatedDate)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['updatedDate'],
+      message: `updatedDate ${entry.updatedDate?.toISOString()} must be on or after pubDate ${entry.pubDate.toISOString()}.`,
+    });
+  }
+}
 
 const blog = defineCollection({
   loader: glob({ base: './src/content/blog', pattern: '**/[!_]*.{md,mdx}' }),
@@ -8,14 +26,16 @@ const blog = defineCollection({
     z.object({
       title: z.string(),
       description: z.string(),
-      pubDate: z.coerce.date(),
-      updatedDate: z.coerce.date().optional(),
+      pubDate: calendarDate,
+      updatedDate: calendarDate.optional(),
       heroImage: z.optional(image()),
       tags: z.array(z.string()).default([]),
       series: z.string().optional(),
       seriesPart: z.number().optional(),
       projectRef: z.string().optional(),
     }).superRefine((entry, ctx) => {
+      validateDateOrder(entry, ctx);
+
       const hasSeries = entry.series !== undefined;
       const hasSeriesPart = entry.seriesPart !== undefined;
 
@@ -44,14 +64,14 @@ const projects = defineCollection({
     z.object({
       title: z.string(),
       description: z.string(),
-      pubDate: z.coerce.date(),
-      updatedDate: z.coerce.date().optional(),
+      pubDate: calendarDate,
+      updatedDate: calendarDate.optional(),
       heroImage: z.optional(image()),
       tags: z.array(z.string()).default([]),
       status: z.enum(['active', 'wip', 'archived']).default('active'),
       repoUrl: z.string().url().optional(),
       liveUrl: z.string().url().optional(),
-    }),
+    }).superRefine(validateDateOrder),
 });
 
 export const collections = { blog, projects };

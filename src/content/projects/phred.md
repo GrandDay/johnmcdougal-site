@@ -2,6 +2,7 @@
 title: "Phred — Self-Hosted AI Infrastructure"
 description: "An active operational-lab project for reusable local model serving, GPU inference, and a managed rebuild from a manual proof of concept into reproducible infrastructure."
 pubDate: 2026-07-15
+updatedDate: 2026-07-16
 status: active
 tags: ["ai", "self-hosted", "infrastructure", "linux", "docker", "gpu", "llm"]
 ---

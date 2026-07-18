@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { rawMarkdownDateLines } from '../../lib/content-dates.mjs';
 
 export async function getStaticPaths() {
 const posts = await getCollection('blog');
@@ -11,13 +12,13 @@ props: { post },
 
 export const GET: APIRoute = ({ props }) => {
 const { post } = props;
-const { title, description, pubDate, tags } = post.data;
+const { title, description, pubDate, updatedDate, tags } = post.data;
 
 const frontmatter = [
 '---',
 `title: "${title}"`,
 `description: "${description}"`,
-`date: ${pubDate.toISOString().split('T')[0]}`,
+...rawMarkdownDateLines(pubDate, updatedDate),
 `tags: [${tags.map((t: string) => `"${t}"`).join(', ')}]`,
 `canonical: https://johnmcdougal.com/blog/${post.id}/`,
 '---',

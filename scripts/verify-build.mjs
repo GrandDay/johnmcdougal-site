@@ -2,6 +2,14 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import process from 'node:process';
+import {
+	articleDateProperties,
+	formatCalendarDate,
+	getLatestRelatedActivity,
+	isUtcCalendarDate,
+	isValidDateOrder,
+	rawMarkdownDateLines,
+} from '../src/lib/content-dates.mjs';
 
 const root = process.cwd();
 const dist = path.resolve(root, process.env.VERIFY_BUILD_DIST ?? 'dist');
@@ -20,6 +28,36 @@ const expectedSeries = [
 	},
 ];
 const standalonePost = 'hello-world';
+const expectedSourceDates = {
+	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
+	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
+	'blog/email-authentication-spf-dkim-dmarc.md': '2026-05-04',
+	'blog/hello-world.md': '2026-04-16',
+	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
+	'blog/parked-domain-email-authentication.md': '2026-05-04',
+	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
+	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
+	'blog/working-with-ai-iteration-as-method.md': '2026-05-05',
+	'blog/working-with-ai-systems-that-build-systems.md': '2026-05-05',
+	'blog/working-with-ai-the-it-guy-who-listens.md': '2026-05-05',
+	'blog/working-with-ai-the-latent-space.md': '2026-05-04',
+	'blog/working-with-ai-the-prompt-is-a-draft.md': '2026-05-05',
+	'projects/aeon-desktop.md': '2026-04-15',
+	'projects/cue-verse.md': '2026-04-15',
+	'projects/homelab.md': '2026-04-15',
+	'projects/johnmcdougal-site.md': '2026-04-15',
+	'projects/phred.md': '2026-07-15',
+	'projects/userspace.md': '2026-04-15',
+};
+const expectedProjectUpdates = new Set([
+	'projects/aeon-desktop.md',
+	'projects/cue-verse.md',
+	'projects/homelab.md',
+	'projects/johnmcdougal-site.md',
+	'projects/phred.md',
+	'projects/userspace.md',
+]);
+const approvedProjectUpdate = '2026-07-16';
 
 function fail(message) {
 	failures.push(message);
@@ -37,8 +75,27 @@ function attributeValue(html, attribute) {
 	return html.match(new RegExp(`${attribute}="([^"]+)"`))?.[1] ?? null;
 }
 
+function escapeRegExp(value) {
+	return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function hasLabeledDate(html, label, date) {
+	const rendered = formatCalendarDate(date);
+	return new RegExp(
+		`${escapeRegExp(label)}\\s*<time datetime="${escapeRegExp(date.toISOString())}">\\s*${escapeRegExp(rendered)}\\s*</time>`,
+	).test(html);
+}
+
 function filePath(...parts) {
 	return path.join(dist, ...parts);
+}
+
+function sourceFilePath(relativePath) {
+	return path.join(root, 'src', 'content', ...relativePath.split('/'));
+}
+
+function sourceFrontmatterValue(source, key) {
+	return source.match(new RegExp(`^${key}:\\s*(\\d{4}-\\d{2}-\\d{2})\\s*$`, 'm'))?.[1] ?? null;
 }
 
 function requireFile(relativePath) {
@@ -53,6 +110,78 @@ function requireFile(relativePath) {
 function readRequired(relativePath) {
 	const fullPath = requireFile(relativePath);
 	return fullPath ? readFileSync(fullPath, 'utf8') : '';
+}
+
+for (const [relativePath, expectedPubDate] of Object.entries(expectedSourceDates)) {
+	const source = readFileSync(sourceFilePath(relativePath), 'utf8');
+	const actualPubDate = sourceFrontmatterValue(source, 'pubDate');
+	const actualUpdatedDate = sourceFrontmatterValue(source, 'updatedDate');
+
+	if (actualPubDate !== expectedPubDate) {
+		fail(`Source pubDate changed for ${relativePath}: expected ${expectedPubDate}, found ${actualPubDate ?? 'none'}.`);
+	}
+
+	if (expectedProjectUpdates.has(relativePath)) {
+		if (actualUpdatedDate !== approvedProjectUpdate) {
+			fail(`Project updatedDate mismatch for ${relativePath}: expected ${approvedProjectUpdate}, found ${actualUpdatedDate ?? 'none'}.`);
+		}
+	} else if (actualUpdatedDate !== null) {
+		fail(`Unexpected blog updatedDate for ${relativePath}: found ${actualUpdatedDate}.`);
+	}
+}
+
+const calendarExamples = [
+	['2026-04-15', 'Apr 15, 2026'],
+	['2026-05-05', 'May 5, 2026'],
+	['2026-07-15', 'Jul 15, 2026'],
+	['2026-07-16', 'Jul 16, 2026'],
+];
+for (const [sourceDate, expectedLabel] of calendarExamples) {
+	const date = new Date(`${sourceDate}T00:00:00.000Z`);
+	if (!isUtcCalendarDate(date) || formatCalendarDate(date) !== expectedLabel) {
+		fail(`UTC calendar formatting mismatch for ${sourceDate}.`);
+	}
+}
+if (isUtcCalendarDate(new Date('2026-04-15T12:00:00.000Z'))) {
+	fail('Calendar-date validation accepted a non-midnight timestamp.');
+}
+if (!isValidDateOrder(new Date('2026-04-15T00:00:00.000Z'), new Date('2026-07-16T00:00:00.000Z'))) {
+	fail('Date-order validation rejected a valid update date.');
+}
+if (isValidDateOrder(new Date('2026-07-16T00:00:00.000Z'), new Date('2026-04-15T00:00:00.000Z'))) {
+	fail('Date-order validation accepted an update before publication.');
+}
+
+const fixturePublished = new Date('2026-04-15T00:00:00.000Z');
+const fixtureUpdated = new Date('2026-07-16T00:00:00.000Z');
+const fixtureArticleDates = articleDateProperties(fixturePublished, fixtureUpdated);
+if (
+	fixtureArticleDates.datePublished !== fixturePublished.toISOString() ||
+	fixtureArticleDates.dateModified !== fixtureUpdated.toISOString()
+) {
+	fail('Article metadata date fixture did not emit publication and modification dates.');
+}
+if ('dateModified' in articleDateProperties(fixturePublished)) {
+	fail('Article metadata emitted dateModified without an updatedDate.');
+}
+if (rawMarkdownDateLines(fixturePublished, fixtureUpdated).join('\n') !== 'date: 2026-04-15\nupdated: 2026-07-16') {
+	fail('Raw Markdown date fixture did not preserve publication and optional update values.');
+}
+
+const fixtureProject = { id: 'fixture-project', data: { pubDate: fixturePublished, updatedDate: fixtureUpdated } };
+const olderFixturePost = {
+	id: 'older-post',
+	data: { projectRef: 'fixture-project', pubDate: new Date('2026-05-04T00:00:00.000Z') },
+};
+const newerFixturePost = {
+	id: 'newer-post',
+	data: { projectRef: 'fixture-project', pubDate: new Date('2026-07-17T00:00:00.000Z') },
+};
+if (getLatestRelatedActivity(fixtureProject, [olderFixturePost]) !== undefined) {
+	fail('Related-activity fixture exposed an older related post.');
+}
+if (getLatestRelatedActivity(fixtureProject, [olderFixturePost, newerFixturePost])?.post.id !== 'newer-post') {
+	fail('Related-activity fixture did not expose the newer related post.');
 }
 
 function routeFile(route) {
@@ -123,6 +252,11 @@ if (existsSync(filePath('projects', 'homelab-iac'))) {
 }
 
 const sitemapLocs = readSitemapLocs();
+for (const name of readdirSync(dist).filter((entry) => /^sitemap.*\.xml$/.test(entry))) {
+	if (readRequired(name).includes('<lastmod>')) {
+		fail(`Sitemap unexpectedly contains lastmod data: ${name}.`);
+	}
+}
 for (const route of routes) {
 	const loc = expectedCanonical(route);
 	if (!sitemapLocs.includes(loc)) {
@@ -153,6 +287,37 @@ const chronologicalIds = [...blogIndex.matchAll(/data-chronological-post="([^"]+
 	.map((match) => match[1]);
 if (chronologicalIds.length !== 13 || new Set(chronologicalIds).size !== 13) {
 	fail(`Chronological Writing index must contain 13 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
+}
+
+for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
+	const id = path.basename(relativePath, '.md');
+	const date = new Date(`${sourceDate}T00:00:00.000Z`);
+
+	if (relativePath.startsWith('blog/')) {
+		const html = readRequired(`blog/${id}/index.html`);
+		if (!hasLabeledDate(html, 'Published', date)) {
+			fail(`Blog entry "${id}" is missing its UTC-stable Published label.`);
+		}
+		if (!html.includes(`"datePublished":"${date.toISOString()}"`)) {
+			fail(`Blog entry "${id}" is missing its datePublished metadata.`);
+		}
+		if (html.includes('"dateModified":')) {
+			fail(`Blog entry "${id}" exposes dateModified without an updatedDate.`);
+		}
+		continue;
+	}
+
+	const html = readRequired(`projects/${id}/index.html`);
+	const updatedDate = new Date(`${approvedProjectUpdate}T00:00:00.000Z`);
+	if (!hasLabeledDate(html, 'Page published', date)) {
+		fail(`Project entry "${id}" is missing its UTC-stable Page published label.`);
+	}
+	if (!hasLabeledDate(html, 'Page updated', updatedDate)) {
+		fail(`Project entry "${id}" is missing its approved Page updated label.`);
+	}
+	if (html.includes('Latest related activity')) {
+		fail(`Project entry "${id}" incorrectly exposes current Latest related activity.`);
+	}
 }
 
 if (countMatches(blogIndex, /data-series-group=/g) !== 2) {
@@ -258,6 +423,9 @@ for (const id of chronologicalIds) {
 	}
 	if (/^(series|seriesPart|projectRef):/m.test(frontmatter)) {
 		fail(`Raw Markdown contract changed for "${id}": relationship metadata was exposed.`);
+	}
+	if (/^updated:/m.test(frontmatter)) {
+		fail(`Raw Markdown exposed an update for unchanged blog entry "${id}".`);
 	}
 }
 

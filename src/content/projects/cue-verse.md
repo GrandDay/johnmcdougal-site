@@ -2,6 +2,7 @@
 title: "CUE-Verse"
 description: "An evolving source-of-truth and documentation framework for keeping lab decisions, deployment notes, and operational context connected across infrastructure, tooling, and knowledge work."
 pubDate: 2026-04-15
+updatedDate: 2026-07-16
 status: wip
 tags: ["knowledge-management", "notion", "obsidian", "homelab", "self-hosted", "storage", "dokploy", "documentation"]
 ---

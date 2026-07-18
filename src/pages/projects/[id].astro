@@ -5,6 +5,7 @@ import Footer from "../../components/Footer.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
 import Header from "../../components/Header.astro";
 import { SITE_TITLE } from "../../consts";
+import { getLatestRelatedActivity } from "../../lib/content-dates.mjs";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");
@@ -27,6 +28,7 @@ const linkedPosts = allPosts
     if (dateDiff !== 0) return dateDiff;
     return (a.data.seriesPart ?? 0) - (b.data.seriesPart ?? 0);
   });
+const latestRelatedActivity = getLatestRelatedActivity(project, allPosts);
 
 const statusLabel = { active: "Active", wip: "In Progress", archived: "Archived" };
 const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-muted)" };
@@ -213,9 +215,17 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-m
             >
               {statusLabel[status]}
             </span>
-            <span class="date"><FormattedDate date={pubDate} /></span>
+            <span class="date">Page published <FormattedDate date={pubDate} /></span>
             {updatedDate && (
-              <span class="date">Updated: <FormattedDate date={updatedDate} /></span>
+              <span class="date">Page updated <FormattedDate date={updatedDate} /></span>
+            )}
+            {latestRelatedActivity && (
+              <span class="date">
+                Latest related activity{' '}
+                <a href={`/blog/${latestRelatedActivity.post.id}/`}>
+                  <FormattedDate date={latestRelatedActivity.date} />
+                </a>
+              </span>
             )}
           </div>
           <h1>{title}</h1>

@@ -2,6 +2,7 @@
 title: "Aeon Desktop and the Immutable Workstation"
 description: "Daily-use Linux workstation practice around Aeon Desktop, Distrobox, Podman, dotfiles, and repeatable tooling across mixed Linux and Windows contexts."
 pubDate: 2026-04-15
+updatedDate: 2026-07-16
 status: active
 tags: ["linux", "aeon", "distrobox", "immutable", "dotfiles", "homelab", "workstation", "docker"]
 ---

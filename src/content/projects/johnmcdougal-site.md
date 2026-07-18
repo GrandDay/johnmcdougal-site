@@ -2,6 +2,7 @@
 title: "This Site"
 description: "The Astro 6 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior."
 pubDate: 2026-04-15
+updatedDate: 2026-07-16
 status: active
 tags: ["astro", "cloudflare", "web", "blog", "site-build", "email"]
 repoUrl: "https://github.com/GrandDay/johnmcdougal-site"

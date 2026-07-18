@@ -2,6 +2,7 @@
 title: "The Homelab"
 description: "An operational lab for virtualization, storage, networking, backups, self-hosting, and local AI infrastructure, with private homelab-iac workflows for repeatable change, validation, and recovery."
 pubDate: 2026-04-15
+updatedDate: 2026-07-16
 status: active
 tags: ["homelab", "proxmox", "self-hosted", "infrastructure", "zfs", "backup", "automation", "ai"]
 ---
