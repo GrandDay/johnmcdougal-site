@@ -52,6 +52,9 @@ Expected local runtime:
 | `npm run dev`           | Start local dev server at `localhost:4321`                       |
 | `npm run check`         | Run Astro content and type checks                                |
 | `npm run build`         | Build production site to `./dist/`                               |
+| `npm run commit:check`  | Verify the explicit staged scope and run canonical validation     |
+| `npm run hooks:status`  | Report the effective Git hooks path and configuration origin      |
+| `npm run hooks:install` | Opt in to the repository-local tracked pre-commit hook            |
 | `npm run verify:build`  | Verify selected generated-site invariants in `./dist/`           |
 | `npm run validate`      | Run whitespace check, Astro check, fresh build, and verification |
 | `npm run review`        | Validate, refresh, and leave a local preview server running      |
@@ -59,6 +62,16 @@ Expected local runtime:
 | `npm run review:stop`   | Stop only the script-owned preview server                        |
 
 The review server binds to `127.0.0.1` by default and writes ignored state/logs under `.tmp/`. When human testing is complete, stop it with `npm run review:stop` before committing unless the active packet gives different closure instructions.
+
+Commit workflow:
+
+1. Stage only the approved paths and inspect `git diff --cached`.
+2. Keep the nonignored worktree free of unstaged and untracked changes so validation reads the proposed commit state.
+3. Run `npm run commit:check`; it reports staged names/stat, checks the staged diff, and invokes `npm run validate` without rewriting or staging files.
+4. Install the convenience hook with `npm run hooks:install` only after `npm run hooks:status` reports no conflict. The script is canonical; the hook only calls it.
+5. On the hook's first Git-for-Windows commit, preserve its executable mode with `git add --chmod=+x .githooks/pre-commit`; later commits retain mode `100755`.
+6. Correct failures explicitly, stage the intended versions again, and rerun the check. A `--no-verify` bypass must be disclosed in closure evidence.
+7. Commit only after human authorization. These commands never add, commit, merge, or push.
 
 Validation policy:
 
