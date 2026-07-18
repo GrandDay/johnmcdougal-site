@@ -27,7 +27,8 @@ const expectedSeries = [
 		description: 'A practical series on context, iteration, prompts, reusable workflows, and human judgment in AI-assisted work.',
 	},
 ];
-const standalonePost = 'hello-world';
+const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
+const standalonePosts = [homelabPost, 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
@@ -36,6 +37,7 @@ const expectedSourceDates = {
 	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
+	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
 	'blog/working-with-ai-iteration-as-method.md': '2026-05-05',
 	'blog/working-with-ai-systems-that-build-systems.md': '2026-05-05',
@@ -270,8 +272,8 @@ for (const forbidden of [`${site}/tags/AI/`, `${site}/projects/homelab-iac/`]) {
 	}
 }
 
-if (sitemapLocs.length !== 79) {
-	fail(`Sitemap route count changed: expected 79, found ${sitemapLocs.length}.`);
+if (sitemapLocs.length !== 80) {
+	fail(`Sitemap route count changed: expected 80, found ${sitemapLocs.length}.`);
 }
 
 const tagDetailLocs = sitemapLocs.filter((loc) => {
@@ -285,8 +287,8 @@ if (tagDetailLocs.length !== 54) {
 const blogIndex = readRequired('blog/index.html');
 const chronologicalIds = [...blogIndex.matchAll(/data-chronological-post="([^"]+)"/g)]
 	.map((match) => match[1]);
-if (chronologicalIds.length !== 13 || new Set(chronologicalIds).size !== 13) {
-	fail(`Chronological Writing index must contain 13 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
+if (chronologicalIds.length !== 14 || new Set(chronologicalIds).size !== 14) {
+	fail(`Chronological Writing index must contain 14 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
 }
 
 for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
@@ -315,7 +317,15 @@ for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 	if (!hasLabeledDate(html, 'Page updated', updatedDate)) {
 		fail(`Project entry "${id}" is missing its approved Page updated label.`);
 	}
-	if (html.includes('Latest related activity')) {
+	if (id === 'homelab') {
+		if (
+			!html.includes('Latest related activity') ||
+			!html.includes(`/blog/${homelabPost}/`) ||
+			!/<time datetime="2026-07-17T00:00:00\.000Z">\s*Jul 17, 2026\s*<\/time>/.test(html)
+		) {
+			fail(`Project entry "${id}" is missing the expected latest related activity from "${homelabPost}".`);
+		}
+	} else if (html.includes('Latest related activity')) {
 		fail(`Project entry "${id}" incorrectly exposes current Latest related activity.`);
 	}
 }
@@ -354,8 +364,11 @@ if (new Set(orderedSeriesIds).size !== 12) {
 	fail('Series organizer contains a duplicate member across series.');
 }
 const standaloneIds = chronologicalIds.filter((id) => !orderedSeriesIds.includes(id));
-if (standaloneIds.length !== 1 || standaloneIds[0] !== standalonePost) {
-	fail(`Expected only standalone post "${standalonePost}"; found ${standaloneIds.join(', ') || 'none'}.`);
+if (
+	standaloneIds.length !== standalonePosts.length ||
+	standaloneIds.some((id, index) => id !== standalonePosts[index])
+) {
+	fail(`Expected standalone posts ${standalonePosts.join(', ')}; found ${standaloneIds.join(', ') || 'none'}.`);
 }
 
 const relatedProjectResults = [];
@@ -398,14 +411,22 @@ for (const series of expectedSeries) {
 	}
 }
 
-const standaloneRoute = `/blog/${standalonePost}/`;
-assertRoute(standaloneRoute);
-const standaloneHtml = readRequired(routeFile(standaloneRoute));
-if (/data-series-module=|data-series-current=|data-series-prev=|data-series-next=/.test(standaloneHtml)) {
-	fail(`Standalone post "${standalonePost}" renders series navigation.`);
+for (const id of standalonePosts) {
+	const route = `/blog/${id}/`;
+	assertRoute(route);
+	const html = readRequired(routeFile(route));
+	if (/data-series-module=|data-series-current=|data-series-prev=|data-series-next=/.test(html)) {
+		fail(`Standalone post "${id}" renders series navigation.`);
+	}
 }
-if (standaloneHtml.includes('data-related-project=')) {
-	fail(`Standalone post "${standalonePost}" renders a fabricated related project.`);
+
+const helloWorldHtml = readRequired(routeFile('/blog/hello-world/'));
+if (helloWorldHtml.includes('data-related-project=')) {
+	fail('Standalone post "hello-world" renders a fabricated related project.');
+}
+const homelabPostHtml = readRequired(routeFile(`/blog/${homelabPost}/`));
+if (attributeValue(homelabPostHtml, 'data-related-project') !== 'homelab') {
+	fail(`Standalone post "${homelabPost}" is missing its resolved Homelab project relationship.`);
 }
 
 if (
@@ -434,8 +455,8 @@ if (!/<rss[\s>]/i.test(rss) || !/<item>/i.test(rss)) {
 	fail('RSS output is missing an rss root or item entries.');
 }
 const rssItems = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((match) => match[1]);
-if (rssItems.length !== 13) {
-	fail(`RSS item count changed: expected 13, found ${rssItems.length}.`);
+if (rssItems.length !== 14) {
+	fail(`RSS item count changed: expected 14, found ${rssItems.length}.`);
 }
 const rssDates = rssItems.map((item) => {
 	const value = item.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1];
@@ -463,8 +484,8 @@ for (const series of expectedSeries) {
 		}
 	}
 }
-if (!llms.includes(`${site}/blog/${standalonePost}/`)) {
-	fail(`llms.txt is missing standalone post "${standalonePost}".`);
+if (!llms.includes(`${site}/blog/hello-world/`)) {
+	fail('llms.txt is missing standalone post "hello-world".');
 }
 
 const graphText = readRequired('graph.json');
@@ -506,23 +527,23 @@ if (graph) {
 		fail('graph.json edges is not an array.');
 	}
 
-	if (graph.nodes?.length !== 73) {
-		fail(`Graph node count changed: expected 73, found ${graph.nodes?.length ?? 'none'}.`);
+	if (graph.nodes?.length !== 74) {
+		fail(`Graph node count changed: expected 74, found ${graph.nodes?.length ?? 'none'}.`);
 	}
-	if (graph.edges?.length !== 118) {
-		fail(`Graph edge count changed: expected 118, found ${graph.edges?.length ?? 'none'}.`);
+	if (graph.edges?.length !== 123) {
+		fail(`Graph edge count changed: expected 123, found ${graph.edges?.length ?? 'none'}.`);
 	}
 
 	if (Array.isArray(graph.nodes)) {
 		const nodeHash = sortedHash(graph.nodes.map((node) => node.id));
-		const expectedNodeHash = '64929af1d51e23236a409a64c0b546a9f2bee4745157a16ed0696cff08cc2ed4';
+		const expectedNodeHash = '14231758df09ec02341d89e34aec57a4c4db1db19d7b40528eab592c13f57ca4';
 		if (nodeHash !== expectedNodeHash) {
 			fail(`Graph node-ID set changed: expected ${expectedNodeHash}, found ${nodeHash}.`);
 		}
 	}
 	if (Array.isArray(graph.edges)) {
 		const endpointHash = sortedHash(graph.edges.map((edge) => `${edge.source}->${edge.target}`));
-		const expectedEndpointHash = '2af38e9665bfb034cfed62307a1e950ae571c0305a4a2a3ac6fb37e2bb8b0fad';
+		const expectedEndpointHash = 'b4a980e165d31c60118d0da9fb347fe7119842907e94ada97d40de1d7e692ce0';
 		if (endpointHash !== expectedEndpointHash) {
 			fail(`Graph edge-endpoint set changed: expected ${expectedEndpointHash}, found ${endpointHash}.`);
 		}
