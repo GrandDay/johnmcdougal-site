@@ -118,6 +118,69 @@ import { SITE_TITLE } from '../consts';
       font-size: 0.78rem;
       color: var(--text-muted);
     }
+    .graph-selection-panel {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .graph-selection-panel h2 {
+      margin: 0 0 0.35rem;
+      font-size: 1rem;
+    }
+    .graph-selection-panel p { margin: 0; }
+    .selection-details {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 0.75rem 0;
+    }
+    .selection-details div {
+      min-width: 0;
+      padding-left: 0.65rem;
+      border-left: 3px solid var(--accent);
+    }
+    .selection-details dt {
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .selection-details dd {
+      margin: 0.15rem 0 0;
+      overflow-wrap: anywhere;
+    }
+    .selection-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .selection-actions a,
+    .selection-actions button {
+      min-height: 44px;
+    }
+    .selection-actions button {
+      padding: 0.45rem 0.7rem;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      cursor: pointer;
+      font: inherit;
+    }
+    .selection-actions button:hover { border-color: var(--accent); }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
     #graph-svg :global(.graph-label) {
       fill: var(--text-muted);
       font-size: 0.68rem;
@@ -126,14 +189,41 @@ import { SITE_TITLE } from '../consts';
       stroke-width: 3px;
       stroke-linejoin: round;
     }
+    #graph-svg :global(.graph-node.is-unrelated),
+    #graph-svg :global(.graph-label.is-unrelated) {
+      opacity: 0.3;
+    }
+    #graph-svg :global(.graph-node.is-neighbor) {
+      stroke: var(--text-muted);
+      stroke-width: 2.5px;
+    }
+    #graph-svg :global(.graph-node.is-selected) {
+      stroke: var(--text);
+      stroke-width: 4px;
+      stroke-dasharray: 2 1;
+    }
+    #graph-svg :global(.graph-edge.is-unrelated) {
+      opacity: 0.16;
+    }
+    #graph-svg :global(.graph-edge.is-incident) {
+      opacity: 1;
+      stroke-width: 3px;
+    }
     #graph-svg :global(.graph-node:focus-visible) {
       outline: none;
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
       stroke: var(--text);
       stroke-width: 2.5px;
+    }
+    #graph-svg :global(.graph-node.is-selected:focus-visible) {
+      stroke-width: 4px;
+      stroke-dasharray: 2 1;
     }
     @media (max-width: 720px) {
       .graph-container { height: calc(100vh - 56px - 260px); min-height: 460px; }
       .legend { gap: 1rem; }
+      .selection-details { grid-template-columns: 1fr; gap: 0.55rem; }
     }
   </style>
 </head>
@@ -142,7 +232,7 @@ import { SITE_TITLE } from '../consts';
   <main>
     <div class="graph-header">
       <h1>Content graph</h1>
-      <p>Every post, project, and tag -- and how they connect. Click any node to navigate.</p>
+      <p>Every post, project, and tag -- and how they connect. Select a node to inspect it, then use the explicit link to open its page.</p>
     </div>
 
     <div class="legend">
@@ -173,7 +263,7 @@ import { SITE_TITLE } from '../consts';
     </div>
 
     <div class="graph-container">
-      <svg id="graph-svg" aria-label="Content relationship graph"></svg>
+      <svg id="graph-svg" role="group" aria-label="Content relationship graph" aria-describedby="graph-instructions"></svg>
       <div class="spinner-wrap" id="spinner-wrap">
         <div class="spinner"></div>
         <span class="spinner-label">Mapping connections...</span>
@@ -181,8 +271,33 @@ import { SITE_TITLE } from '../consts';
     </div>
 
     <div class="graph-hint">
-      Scroll or pinch to zoom &middot; drag to pan &middot; drag nodes to reposition
+      <span id="graph-instructions">Select a node with click, tap, Enter, or Space. Scroll or pinch to zoom &middot; drag to pan &middot; drag nodes to reposition.</span>
     </div>
+
+    <section class="graph-selection-panel" aria-labelledby="graph-selection-title">
+      <h2 id="graph-selection-title">Selected node</h2>
+      <p id="graph-selection-instruction">Select a node to see its type, connections, and an explicit link to its page.</p>
+      <dl class="selection-details" id="graph-selection-details" hidden>
+        <div>
+          <dt>Label</dt>
+          <dd id="graph-selection-label"></dd>
+        </div>
+        <div>
+          <dt>Type</dt>
+          <dd id="graph-selection-type"></dd>
+        </div>
+        <div>
+          <dt>Connections</dt>
+          <dd id="graph-selection-connections"></dd>
+        </div>
+      </dl>
+      <p id="graph-selection-unavailable" hidden>No page is available for this node.</p>
+      <div class="selection-actions">
+        <a id="graph-selection-link" href="#" hidden>Open selected node</a>
+        <button id="graph-selection-clear" type="button" hidden>Clear selection</button>
+      </div>
+    </section>
+    <p id="graph-status" class="sr-only" role="status" aria-live="polite"></p>
   </main>
   <Footer />
 
@@ -198,7 +313,26 @@ import { SITE_TITLE } from '../consts';
     const svgEl = document.getElementById('graph-svg');
     const tooltip = document.getElementById('graph-tooltip');
     const spinnerWrap = document.getElementById('spinner-wrap');
+    const selectionInstruction = document.getElementById('graph-selection-instruction');
+    const selectionDetails = document.getElementById('graph-selection-details');
+    const selectionLabel = document.getElementById('graph-selection-label');
+    const selectionType = document.getElementById('graph-selection-type');
+    const selectionConnections = document.getElementById('graph-selection-connections');
+    const selectionUnavailable = document.getElementById('graph-selection-unavailable');
+    const selectionLink = document.getElementById('graph-selection-link');
+    const selectionClear = document.getElementById('graph-selection-clear');
+    const graphStatus = document.getElementById('graph-status');
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const nodeById = new Map(data.nodes.map((d) => [d.id, d]));
+    const connectionsById = new Map(data.nodes.map((d) => [d.id, new Set()]));
+    data.edges.forEach((edge) => {
+      connectionsById.get(edge.source)?.add(edge.target);
+      connectionsById.get(edge.target)?.add(edge.source);
+    });
+    const edgeEndpointId = (endpoint) => typeof endpoint === 'object' ? endpoint.id : endpoint;
+    const connectionCount = (d) => connectionsById.get(d.id)?.size ?? 0;
+    const nodeDescription = (d) => `${d.label}, ${d.type}, ${connectionCount(d)} connection${connectionCount(d) === 1 ? '' : 's'}`;
 
     let width = container.clientWidth;
     let height = container.clientHeight;
@@ -208,9 +342,15 @@ import { SITE_TITLE } from '../consts';
 
     // Zoom + pan
     const g = svg.append('g');
+    const viewportAutoFitCooldown = 40000;
+    let lastUserViewportChangeAt = 0;
+    const viewportCooldownIsActive = () => Date.now() - lastUserViewportChangeAt < viewportAutoFitCooldown;
     const zoomBehavior = d3.zoom()
       .scaleExtent([0.25, 4])
-      .on('zoom', (event) => g.attr('transform', event.transform));
+      .on('zoom', (event) => {
+        if (event.sourceEvent) lastUserViewportChangeAt = Date.now();
+        g.attr('transform', event.transform);
+      });
     svg.call(zoomBehavior);
 
     const nodeRadius = (d) => d.type === 'project' ? 12 : d.type === 'post' ? 8 : 5;
@@ -231,9 +371,48 @@ import { SITE_TITLE } from '../consts';
       .selectAll('line')
       .data(data.edges)
       .join('line')
+      .attr('class', 'graph-edge')
       .attr('stroke', (d) => d.type === 'projectRef' ? '#2dd4bf' : 'rgba(100,116,139,0.3)')
       .attr('stroke-width', (d) => d.type === 'projectRef' ? 2.5 : 1)
       .attr('stroke-dasharray', (d) => d.type === 'tag' ? '4 3' : null);
+
+    const dragState = new WeakMap();
+    const dragBehavior = d3.drag()
+      .on('start', (event, d) => {
+        dragState.set(d, { x: event.x, y: event.y, moved: false, reheating: false });
+        d.fx = d.x; d.fy = d.y;
+      })
+      .on('drag', (event, d) => {
+        const state = dragState.get(d);
+        if (state && !state.moved && Math.hypot(event.x - state.x, event.y - state.y) > 4) {
+          state.moved = true;
+          state.reheating = true;
+          simulation.alphaTarget(0.3).restart();
+        }
+        d.fx = event.x; d.fy = event.y;
+      })
+      .on('end', (event, d) => {
+        const state = dragState.get(d);
+        if (state?.reheating && !event.active) simulation.alphaTarget(0);
+        d.fx = null; d.fy = null;
+        if (state?.moved) {
+          window.setTimeout(() => dragState.delete(d), 0);
+        } else {
+          dragState.delete(d);
+        }
+      });
+
+    // Invisible hit areas keep touch targets near the existing 44px standard.
+    const hitArea = g.append('g')
+      .selectAll('circle')
+      .data(data.nodes)
+      .join('circle')
+      .attr('r', 22)
+      .attr('fill', 'transparent')
+      .attr('pointer-events', 'all')
+      .attr('class', 'graph-hit-area')
+      .attr('aria-hidden', 'true')
+      .call(dragBehavior);
 
     // Nodes
     const node = g.append('g')
@@ -246,21 +425,11 @@ import { SITE_TITLE } from '../consts';
       .attr('stroke-width', 1)
       .attr('cursor', 'pointer')
       .attr('class', 'graph-node')
-      .attr('tabindex', (d) => d.url ? 0 : null)
-      .attr('role', (d) => d.url ? 'link' : 'img')
-      .attr('aria-label', (d) => `${d.label} (${d.type})`)
-      .call(
-        d3.drag()
-          .on('start', (event, d) => {
-            if (!event.active) simulation.alphaTarget(0.3).restart();
-            d.fx = d.x; d.fy = d.y;
-          })
-          .on('drag', (event, d) => { d.fx = event.x; d.fy = event.y; })
-          .on('end', (event, d) => {
-            if (!event.active) simulation.alphaTarget(0);
-            d.fx = null; d.fy = null;
-          })
-      );
+      .attr('tabindex', 0)
+      .attr('role', 'button')
+      .attr('aria-label', nodeDescription)
+      .attr('aria-pressed', 'false')
+      .call(dragBehavior);
 
     node.append('title')
       .text((d) => d.label);
@@ -275,8 +444,57 @@ import { SITE_TITLE } from '../consts';
       .attr('dy', '0.35em')
       .text(displayLabel);
 
-    const navigateToNode = (d) => {
-      if (d.url) window.location.href = d.url;
+    let selectedNodeId = null;
+
+    const updateSelection = (nodeId, announce = true) => {
+      const selected = nodeById.get(nodeId);
+      if (!selected) {
+        selectedNodeId = null;
+        node.classed('is-selected', false).classed('is-neighbor', false).classed('is-unrelated', false)
+          .attr('aria-pressed', 'false');
+        label.classed('is-unrelated', false);
+        link.classed('is-incident', false).classed('is-unrelated', false);
+        selectionInstruction.hidden = false;
+        selectionDetails.hidden = true;
+        selectionUnavailable.hidden = true;
+        selectionLink.hidden = true;
+        selectionLink.removeAttribute('href');
+        selectionClear.hidden = true;
+        if (announce) graphStatus.textContent = 'Selection cleared.';
+        return;
+      }
+
+      selectedNodeId = selected.id;
+      const neighbors = connectionsById.get(selected.id) ?? new Set();
+      const highlighted = new Set([selected.id, ...neighbors]);
+      node
+        .classed('is-selected', (d) => d.id === selected.id)
+        .classed('is-neighbor', (d) => neighbors.has(d.id))
+        .classed('is-unrelated', (d) => !highlighted.has(d.id))
+        .attr('aria-pressed', (d) => d.id === selected.id ? 'true' : 'false');
+      label.classed('is-unrelated', (d) => !highlighted.has(d.id));
+      link
+        .classed('is-incident', (d) => edgeEndpointId(d.source) === selected.id || edgeEndpointId(d.target) === selected.id)
+        .classed('is-unrelated', (d) => edgeEndpointId(d.source) !== selected.id && edgeEndpointId(d.target) !== selected.id);
+
+      selectionInstruction.hidden = true;
+      selectionDetails.hidden = false;
+      selectionLabel.textContent = selected.label;
+      selectionType.textContent = selected.type;
+      const count = connectionCount(selected);
+      selectionConnections.textContent = `${count} ${count === 1 ? 'connection' : 'connections'}`;
+      selectionUnavailable.hidden = Boolean(selected.url);
+      selectionLink.hidden = !selected.url;
+      if (selected.url) selectionLink.href = selected.url;
+      else selectionLink.removeAttribute('href');
+      selectionClear.hidden = false;
+      if (announce) graphStatus.textContent = `${nodeDescription(selected)} selected.`;
+    };
+
+    const selectFromActivation = (event, d) => {
+      event.preventDefault();
+      if (dragState.get(d)?.moved) return;
+      updateSelection(d.id);
     };
 
     // Tooltip
@@ -292,18 +510,24 @@ import { SITE_TITLE } from '../consts';
         tooltip.style.top = (event.clientY - 10) + 'px';
       })
       .on('mouseout', () => { tooltip.style.display = 'none'; })
-      .on('click', (event, d) => {
-        event.preventDefault();
-        navigateToNode(d);
-      })
+      .on('click', selectFromActivation)
       .on('keydown', (event, d) => {
         if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          navigateToNode(d);
+          selectFromActivation(event, d);
         }
       });
 
+    hitArea.on('click', selectFromActivation);
+    selectionClear.addEventListener('click', () => updateSelection(null));
+    svg.on('keydown', (event) => {
+      if (event.key === 'Escape' && selectedNodeId) {
+        event.preventDefault();
+        updateSelection(null);
+      }
+    });
+
     const fitGraphToViewport = () => {
+      if (viewportCooldownIsActive()) return;
       const bounds = g.node().getBBox();
       if (!bounds.width || !bounds.height) return;
       const margin = width < 720 ? 28 : 44;
@@ -344,6 +568,9 @@ import { SITE_TITLE } from '../consts';
         node
           .attr('cx', (d) => d.x)
           .attr('cy', (d) => d.y);
+        hitArea
+          .attr('cx', (d) => d.x)
+          .attr('cy', (d) => d.y);
         label
           .attr('x', (d) => d.x + (d.x < width / 2 ? labelOffset(d) : -labelOffset(d)))
           .attr('y', (d) => d.y)
@@ -366,6 +593,7 @@ import { SITE_TITLE } from '../consts';
         .force('collide', d3.forceCollide().radius(labelCollisionRadius).iterations(2))
         .alpha(0.35)
         .restart();
+      updateSelection(selectedNodeId, false);
     });
   </script>
 </body>
