@@ -21,9 +21,9 @@ import { SITE_TITLE } from '../consts';
       margin: 0 !important;
     }
     .graph-header {
-      max-width: 740px;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 2rem 1rem 1rem;
+      padding: 1rem 1rem 0.5rem;
     }
     .graph-header h1 { margin-bottom: 0.25rem; }
     .graph-header p {
@@ -32,9 +32,9 @@ import { SITE_TITLE } from '../consts';
       font-size: 1rem;
     }
     .legend {
-      max-width: 740px;
+      max-width: 1120px;
       margin: 0 auto;
-      padding: 0.75rem 1rem 1.25rem;
+      padding: 0.5rem 1rem 0.75rem;
       display: flex;
       gap: 1.5rem;
       flex-wrap: wrap;
@@ -52,13 +52,21 @@ import { SITE_TITLE } from '../consts';
       border-radius: 50%;
       flex-shrink: 0;
     }
+    .graph-workspace {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 1rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+      gap: 1rem;
+      align-items: stretch;
+    }
     .graph-container {
       position: relative;
-      width: 100%;
-      height: calc(100vh - 56px - 200px);
-      min-height: 560px;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
+      min-width: 0;
+      min-height: 540px;
+      height: min(640px, calc(100vh - 240px));
+      border: 1px solid var(--border);
       background: var(--bg-secondary);
       overflow: hidden;
     }
@@ -112,17 +120,19 @@ import { SITE_TITLE } from '../consts';
       line-height: 1.4;
     }
     .graph-hint {
-      max-width: 740px;
+      max-width: 1120px;
       margin: 0 auto;
       padding: 0.75rem 1rem;
       font-size: 0.78rem;
       color: var(--text-muted);
     }
     .graph-selection-panel {
-      max-width: 740px;
-      margin: 0 auto;
+      margin: 0;
       padding: 1rem;
-      border-top: 1px solid var(--border);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      box-shadow: var(--shadow);
     }
     .graph-selection-panel h2 {
       margin: 0 0 0.35rem;
@@ -131,7 +141,7 @@ import { SITE_TITLE } from '../consts';
     .graph-selection-panel p { margin: 0; }
     .selection-details {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: 1fr;
       gap: 0.75rem;
       margin: 0.75rem 0;
     }
@@ -221,9 +231,17 @@ import { SITE_TITLE } from '../consts';
       stroke-dasharray: 2 1;
     }
     @media (max-width: 720px) {
-      .graph-container { height: calc(100vh - 56px - 260px); min-height: 460px; }
+      .graph-workspace {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+      }
+      .graph-container {
+        min-height: 0;
+        height: min(480px, calc(100vw - 2rem));
+        aspect-ratio: 1;
+      }
       .legend { gap: 1rem; }
-      .selection-details { grid-template-columns: 1fr; gap: 0.55rem; }
+      .selection-details { gap: 0.55rem; }
     }
   </style>
 </head>
@@ -262,41 +280,43 @@ import { SITE_TITLE } from '../consts';
       </div>
     </div>
 
-    <div class="graph-container">
-      <svg id="graph-svg" role="group" aria-label="Content relationship graph" aria-describedby="graph-instructions"></svg>
-      <div class="spinner-wrap" id="spinner-wrap">
-        <div class="spinner"></div>
-        <span class="spinner-label">Mapping connections...</span>
+    <div class="graph-workspace">
+      <div class="graph-container">
+        <svg id="graph-svg" role="group" aria-label="Content relationship graph" aria-describedby="graph-instructions"></svg>
+        <div class="spinner-wrap" id="spinner-wrap">
+          <div class="spinner"></div>
+          <span class="spinner-label">Mapping connections...</span>
+        </div>
       </div>
+      <section class="graph-selection-panel" aria-labelledby="graph-selection-title">
+        <h2 id="graph-selection-title">Selected node</h2>
+        <p id="graph-selection-instruction">Select a node to see its type, connections, and an explicit link to its page.</p>
+        <dl class="selection-details" id="graph-selection-details" hidden>
+          <div>
+            <dt>Label</dt>
+            <dd id="graph-selection-label"></dd>
+          </div>
+          <div>
+            <dt>Type</dt>
+            <dd id="graph-selection-type"></dd>
+          </div>
+          <div>
+            <dt>Connections</dt>
+            <dd id="graph-selection-connections"></dd>
+          </div>
+        </dl>
+        <p id="graph-selection-unavailable" hidden>No page is available for this node.</p>
+        <div class="selection-actions">
+          <a id="graph-selection-link" href="#" hidden>Open selected node</a>
+          <button id="graph-selection-clear" type="button" hidden>Clear selection</button>
+        </div>
+      </section>
     </div>
 
     <div class="graph-hint">
       <span id="graph-instructions">Select a node with click, tap, Enter, or Space. Scroll or pinch to zoom &middot; drag to pan &middot; drag nodes to reposition.</span>
     </div>
 
-    <section class="graph-selection-panel" aria-labelledby="graph-selection-title">
-      <h2 id="graph-selection-title">Selected node</h2>
-      <p id="graph-selection-instruction">Select a node to see its type, connections, and an explicit link to its page.</p>
-      <dl class="selection-details" id="graph-selection-details" hidden>
-        <div>
-          <dt>Label</dt>
-          <dd id="graph-selection-label"></dd>
-        </div>
-        <div>
-          <dt>Type</dt>
-          <dd id="graph-selection-type"></dd>
-        </div>
-        <div>
-          <dt>Connections</dt>
-          <dd id="graph-selection-connections"></dd>
-        </div>
-      </dl>
-      <p id="graph-selection-unavailable" hidden>No page is available for this node.</p>
-      <div class="selection-actions">
-        <a id="graph-selection-link" href="#" hidden>Open selected node</a>
-        <button id="graph-selection-clear" type="button" hidden>Clear selection</button>
-      </div>
-    </section>
     <p id="graph-status" class="sr-only" role="status" aria-live="polite"></p>
   </main>
   <Footer />

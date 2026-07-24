@@ -55,9 +55,9 @@ const featuredProjects = featuredProjectSummaries
 	});
 
 const proofItems = [
-	'100+ managed-services client environments',
-	'150+ physical and virtual servers installed, configured, maintained, and troubleshot',
-	'40–80+ weekly support requests resolved while advancing infrastructure work',
+	{ metric: '100+', label: 'Managed-services client environments supported' },
+	{ metric: '150+', label: 'Physical and virtual servers deployed, configured, maintained, or troubleshot' },
+	{ metric: '40–80', label: 'Support requests handled weekly alongside infrastructure project work' },
 ];
 
 const tagMap = new Map<string, number>();
@@ -166,6 +166,12 @@ const statusLabel = { active: 'Active', wip: 'WIP', archived: 'Archived' };
 	padding: 0;
 	margin: 1.35rem 0 0;
 	list-style: none;
+}
+.proof-intro {
+	max-width: 62ch;
+	margin: 0 0 1rem;
+	color: var(--text-muted);
+	line-height: 1.55;
 }
 .proof-list li {
 	border: 1px solid var(--border);
@@ -310,15 +316,15 @@ const statusLabel = { active: 'Active', wip: 'WIP', archived: 'Archived' };
 
 	<section class="section" aria-labelledby="proof-title">
 		<div class="section-header">
-			<h2 id="proof-title">Professional Proof</h2>
+			<h2 id="proof-title">Experience at MSP Scale</h2>
 		</div>
+		<p class="proof-intro">Experience gained as part of a Sacramento managed-services team supporting diverse client infrastructure.</p>
 		<ul class="proof-list">
 			{proofItems.map((item) => {
-				const [metric, ...label] = item.split(' ');
 				return (
 					<li>
-						<strong>{metric}</strong>
-						<span>{label.join(' ')}</span>
+						<strong>{item.metric}</strong>
+						<span>{item.label}</span>
 					</li>
 				);
 			})}
