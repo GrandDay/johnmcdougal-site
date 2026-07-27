@@ -217,7 +217,9 @@ import { SITE_TITLE } from '../consts';
     }
     #graph-svg :global(.graph-edge.is-incident) {
       opacity: 1;
+      stroke: var(--accent);
       stroke-width: 3px;
+      stroke-dasharray: none;
     }
     #graph-svg :global(.graph-node:focus-visible) {
       outline: none;
@@ -268,15 +270,21 @@ import { SITE_TITLE } from '../consts';
       </div>
       <div class="legend-item">
         <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
-          <line x1="0" y1="5" x2="28" y2="5" stroke="#2dd4bf" stroke-width="2.5" />
+          <line x1="0" y1="5" x2="28" y2="5" stroke="rgba(100,116,139,0.3)" stroke-width="2.5" />
         </svg>
         projectRef link
       </div>
       <div class="legend-item">
         <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
-          <line x1="0" y1="5" x2="28" y2="5" stroke="#64748b" stroke-width="1" stroke-dasharray="4 2" />
+          <line x1="0" y1="5" x2="28" y2="5" stroke="rgba(100,116,139,0.3)" stroke-width="1" stroke-dasharray="4 2" />
         </svg>
         shared tag
+      </div>
+      <div class="legend-item">
+        <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
+          <line x1="0" y1="5" x2="28" y2="5" stroke="#2dd4bf" stroke-width="3" />
+        </svg>
+        selected connection
       </div>
     </div>
 
@@ -392,7 +400,7 @@ import { SITE_TITLE } from '../consts';
       .data(data.edges)
       .join('line')
       .attr('class', 'graph-edge')
-      .attr('stroke', (d) => d.type === 'projectRef' ? '#2dd4bf' : 'rgba(100,116,139,0.3)')
+      .attr('stroke', 'rgba(100,116,139,0.3)')
       .attr('stroke-width', (d) => d.type === 'projectRef' ? 2.5 : 1)
       .attr('stroke-dasharray', (d) => d.type === 'tag' ? '4 3' : null);
 
