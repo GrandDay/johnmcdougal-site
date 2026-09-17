@@ -3,9 +3,37 @@ import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 import { isUtcCalendarDate, isValidDateOrder } from './lib/content-dates.mjs';
 
-const calendarDate = z.coerce.date().refine(isUtcCalendarDate, {
+const calendarDate = z
+  .preprocess((value) => (value instanceof Date ? value.toISOString() : value), z.coerce.date())
+  .refine(isUtcCalendarDate, {
   message: 'Calendar dates must resolve to midnight UTC.',
 });
+
+function normalizeTag(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+const normalizedTags = z.preprocess((value) => {
+  if (!Array.isArray(value)) return value;
+
+  const seen = new Set<string>();
+  const output: string[] = [];
+
+  for (const item of value) {
+    if (typeof item !== 'string') continue;
+    const normalized = normalizeTag(item);
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    output.push(normalized);
+  }
+
+  return output;
+}, z.array(z.string()).default([]));
 
 function validateDateOrder(
   entry: { pubDate: Date; updatedDate?: Date },
@@ -29,7 +57,7 @@ const blog = defineCollection({
       pubDate: calendarDate,
       updatedDate: calendarDate.optional(),
       heroImage: z.optional(image()),
-      tags: z.array(z.string()).default([]),
+      tags: normalizedTags,
       series: z.string().optional(),
       seriesPart: z.number().optional(),
       projectRef: z.string().optional(),
@@ -67,7 +95,7 @@ const projects = defineCollection({
       pubDate: calendarDate,
       updatedDate: calendarDate.optional(),
       heroImage: z.optional(image()),
-      tags: z.array(z.string()).default([]),
+      tags: normalizedTags,
       status: z.enum(['active', 'wip', 'archived']).default('active'),
       repoUrl: z.string().url().optional(),
       liveUrl: z.string().url().optional(),

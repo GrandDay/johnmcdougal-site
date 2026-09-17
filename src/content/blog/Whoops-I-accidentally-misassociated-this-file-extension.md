@@ -2,7 +2,7 @@
 title: "Whoops, I accidentally misassociated this file extension"
 description: "How to easily correct a broken or mis-selected file extension association in Windows"
 pubDate: 2026-09-17
-tags: ["windows","tips-n-tricks","macoS"]
+tags: ["windows","tips-n-tricks","macos"]
 # updatedDate: YYYY-MM-DD
 # heroImage: ""
 ---

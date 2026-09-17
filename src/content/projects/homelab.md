@@ -2,9 +2,9 @@
 title: "The Homelab"
 description: "An operational lab for virtualization, storage, networking, backups, self-hosting, and local AI infrastructure, with private homelab-iac workflows for repeatable change, validation, and recovery."
 pubDate: 2026-04-15
-updatedDate: 2026-07-16
+updatedDate: 2026-09-17
 status: active
-tags: ["homelab", "proxmox", "self-hosted", "infrastructure", "zfs", "backup", "automation", "ai"]
+tags: ["homelab", "proxmox", "self-hosted", "infrastructure", "zfs", "backup", "automation", "ai", "forgejo"]
 ---
 
 ## What this is
@@ -12,13 +12,12 @@ tags: ["homelab", "proxmox", "self-hosted", "infrastructure", "zfs", "backup", "
 The Homelab is my operational infrastructure lab: the place where I run and
 rebuild virtualization, storage, networking, backup, self-hosted service, and
 local AI infrastructure work. It is the environment I operate, break, recover,
-document, and use to test infrastructure decisions before they become public
-claims.
+document, and use to test infrastructure, services, and ideas.
 
 The current lab includes Proxmox VE virtualization, Linux VMs and containers,
-TrueNAS-backed storage, dedicated Docker hosts, segmented networking at an
+TrueNAS Scale and Synology based networked storage, dedicated Docker host VM, layered segmented networking at an
 abstract level, Proxmox Backup Server, and service operation across a mix of
-stable systems and active rebuild work.
+stable systems, test systemd and active rebuild (physical to virtual migration) work.
 
 ## Why it exists
 
@@ -44,29 +43,15 @@ bundles, validators and tests, ADRs, runbooks, status records, command-packet
 workflows, and closeout evidence. Those artifacts support repeatable change,
 but live infrastructure mutation remains human-governed.
 
+As I transition from manual configuration to a DevOps approach, I build upon Homelab-IAC, and create project or service specific repositories, that are then deployed across the lab's hosting VM. PBS has jobs configured to backup the lab's VM and hosted data, and push it to an offsite backup. IaC is mirrored to a private external git host. The overall goal of this layering is resiliency, interoperability, and scalability.
+
 ## Current evidence
 
 The lab currently supports operating, troubleshooting, documenting, and
-iterating on self-hosted infrastructure. The verified evidence I can summarize
-publicly includes source-control recovery, protected Git behavior, application
-restore work, mirror validation, and reviewed VM retirement through OpenTofu.
+iterating on self-hosted infrastructure.
 
-I treat tracked declarations as source evidence first, then validate and
-promote the parts that are ready for live change. The durable pattern is moving
-from specification to reviewed source, then from reviewed source to validation,
-recovery notes, and human-approved infrastructure changes.
-
-## Boundaries
-
-I keep the topology abstract on purpose. Hostnames, addresses, VLAN identifiers,
-ports, storage exports, backup identifiers, device maps, private repository
-remotes, command text, and live-state details stay private.
-
-The lab includes validated experiments and rebuild work alongside currently
-operated services. Remote state, unattended deployment, complete CI/CD, active
-proposal automation, self-healing reconciliation, expanded offsite recovery,
-and broader automation maturity remain incomplete or planned unless I describe
-them separately as validated.
+The current state of the lab as a whole includes source-control, recovery, protected Git behavior, application
+restore work, Git based project and source management via a self hosted instance of Forgejo, webhook based notification plane for each infrastructure layer, management of the aforementioned lab layers, and its array of hosted services.
 
 ## Next work
 

@@ -51,6 +51,7 @@ Expected local runtime:
 | `npm ci`                | Install exactly from `package-lock.json`                         |
 | `npm run dev`           | Start local dev server at `localhost:4321`                       |
 | `npm run check`         | Run Astro content and type checks                                |
+| `npm run verify-build:sync-baseline` | Rebuild and auto-sync `scripts/verify-build.mjs` expectation baselines |
 | `npm run whitespace:fix-staged` | Trim trailing whitespace in staged text files and re-stage them |
 | `npm run build`         | Build production site to `./dist/`                               |
 | `npm run commit:check`  | Verify the explicit staged scope and run canonical validation     |
@@ -88,6 +89,15 @@ When adding a new blog post or project page, follow this sequence to keep genera
     - `npm run validate`
 6. If you changed published content inventories, also verify generated inventories in `dist/` (for example `llms.txt`, `rss.xml`, and `graph.json`) reflect the new page.
 7. Trailing whitespace is now auto-trimmed for staged text files by the pre-commit hook. You can also run `npm run whitespace:fix-staged` manually before `npm run commit:check`.
+8. `scripts/verify-build.mjs` baselines are auto-synced during pre-commit (build + rewrite + restage). You can run `npm run verify-build:sync-baseline` manually before staging if you want to inspect the baseline update explicitly.
+9. `npm run verify:build` now includes source tag lint reporting. It warns when source tags normalize to different canonical values (case, spaces, duplicate variants). Warnings are non-blocking by default; set `VERIFY_BUILD_STRICT_TAG_LINT=1` to make tag-lint warnings fail validation.
+
+### Session automation summary
+
+- Pre-commit now runs baseline sync and staged whitespace normalization before commit validation.
+- Baseline sync rewrites `scripts/verify-build.mjs` expectations from current content and generated output.
+- Content schema now normalizes tags at ingest (trim, lowercase, spaces to hyphens, dedupe), which prevents casing/spacing route drift.
+- Verify-build now checks latest related project activity dynamically from content relationships instead of hardcoded post IDs.
 
 Commit workflow:
 

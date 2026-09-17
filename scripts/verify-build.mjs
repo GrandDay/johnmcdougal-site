@@ -15,6 +15,8 @@ const root = process.cwd();
 const dist = path.resolve(root, process.env.VERIFY_BUILD_DIST ?? 'dist');
 const site = 'https://johnmcdougal.com';
 const failures = [];
+const lintWarnings = [];
+const strictTagLint = process.env.VERIFY_BUILD_STRICT_TAG_LINT === '1';
 const expectedSeries = [
 	{
 		key: 'How I built johnmcdougal.com',
@@ -28,15 +30,18 @@ const expectedSeries = [
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
-const standalonePosts = ['whoops-i-accidentally-misassociated-this-file-extension', homelabPost, 'hello-world'];
+const standalonePosts = ['how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
 	'blog/email-authentication-spf-dkim-dmarc.md': '2026-05-04',
 	'blog/hello-world.md': '2026-04-16',
 	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
+	'blog/How-to-Backup-and-Restore-the-Windows-Registry.md': '2026-09-17',
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
+	'blog/proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home.md': '2026-09-17',
+	'blog/site-automation-workflow-updates.md': '2026-09-17',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
 	'blog/Whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
@@ -52,18 +57,33 @@ const expectedSourceDates = {
 	'projects/phred.md': '2026-07-15',
 	'projects/userspace.md': '2026-04-15',
 };
-const expectedProjectUpdates = new Set([
-	'projects/aeon-desktop.md',
-	'projects/cue-verse.md',
-	'projects/homelab.md',
-	'projects/johnmcdougal-site.md',
-	'projects/phred.md',
-	'projects/userspace.md',
-]);
-const approvedProjectUpdate = '2026-07-16';
+const expectedProjectUpdatedDates = {
+	'projects/aeon-desktop.md': '2026-07-16',
+	'projects/cue-verse.md': '2026-07-16',
+	'projects/homelab.md': '2026-09-17',
+	'projects/johnmcdougal-site.md': '2026-07-16',
+	'projects/phred.md': '2026-07-16',
+	'projects/userspace.md': '2026-07-16',
+};
+const expectedBaseline = {
+	sitemapRouteCount: 87,
+	tagDetailRouteCount: 57,
+	chronologicalPostCount: 18,
+	seriesGroupCount: 2,
+	seriesMemberCount: 12,
+	rssItemCount: 18,
+	graphNodeCount: 81,
+	graphEdgeCount: 143,
+	graphNodeHash: '024484804dbeadc8a70b27d28bc7a8dd46740eb798cab719bf9a8e491720cb2b',
+	graphEdgeHash: '5f19cf9670977e9a11dc1db7777fc480da81e43f6c008c2dc03a0b77141b4dfd',
+};
 
 function fail(message) {
 	failures.push(message);
+}
+
+function warn(message) {
+	lintWarnings.push(message);
 }
 
 function countMatches(value, pattern) {
@@ -98,7 +118,30 @@ function sourceFilePath(relativePath) {
 }
 
 function sourceFrontmatterValue(source, key) {
-	return source.match(new RegExp(`^${key}:\\s*(\\d{4}-\\d{2}-\\d{2})\\s*$`, 'm'))?.[1] ?? null;
+	return source.match(new RegExp(`^${key}:\\s*["']?(\\d{4}-\\d{2}-\\d{2})["']?\\s*$`, 'm'))?.[1] ?? null;
+}
+
+function sourceFrontmatterString(source, key) {
+	return source.match(new RegExp(`^${key}:\\s*["']?([^"'\\r\\n]+)["']?\\s*$`, 'm'))?.[1] ?? null;
+}
+
+function sourceFrontmatterArray(source, key) {
+	const match = source.match(new RegExp(`^${key}:\\s*\\[([^\\]]*)\\]\\s*$`, 'm'));
+	if (!match) return [];
+
+	return match[1]
+		.split(',')
+		.map((value) => value.trim().replace(/^['"]|['"]$/g, ''))
+		.filter(Boolean);
+}
+
+function normalizeTag(value) {
+	return value
+		.trim()
+		.toLowerCase()
+		.replace(/\s+/g, '-')
+		.replace(/-+/g, '-')
+		.replace(/^-|-$/g, '');
 }
 
 function requireFile(relativePath) {
@@ -119,17 +162,67 @@ for (const [relativePath, expectedPubDate] of Object.entries(expectedSourceDates
 	const source = readFileSync(sourceFilePath(relativePath), 'utf8');
 	const actualPubDate = sourceFrontmatterValue(source, 'pubDate');
 	const actualUpdatedDate = sourceFrontmatterValue(source, 'updatedDate');
+	const rawTags = sourceFrontmatterArray(source, 'tags');
+	const normalizedTags = [];
+	const seenTags = new Set();
+	for (const tag of rawTags) {
+		const normalized = normalizeTag(tag);
+		if (!normalized || seenTags.has(normalized)) continue;
+		seenTags.add(normalized);
+		normalizedTags.push(normalized);
+	}
+
+	if (rawTags.join('|') !== normalizedTags.join('|')) {
+		warn(
+			`Tag normalization adjusted ${relativePath}: source=[${rawTags.join(', ')}] canonical=[${normalizedTags.join(', ')}].`,
+		);
+	}
 
 	if (actualPubDate !== expectedPubDate) {
 		fail(`Source pubDate changed for ${relativePath}: expected ${expectedPubDate}, found ${actualPubDate ?? 'none'}.`);
 	}
 
-	if (expectedProjectUpdates.has(relativePath)) {
-		if (actualUpdatedDate !== approvedProjectUpdate) {
-			fail(`Project updatedDate mismatch for ${relativePath}: expected ${approvedProjectUpdate}, found ${actualUpdatedDate ?? 'none'}.`);
+	if (relativePath.startsWith('projects/')) {
+		const expectedUpdatedDate = expectedProjectUpdatedDates[relativePath] ?? null;
+		if (expectedUpdatedDate === null && actualUpdatedDate !== null) {
+			fail(`Unexpected project updatedDate for ${relativePath}: found ${actualUpdatedDate}.`);
+		} else if (expectedUpdatedDate !== null && actualUpdatedDate !== expectedUpdatedDate) {
+			fail(`Project updatedDate mismatch for ${relativePath}: expected ${expectedUpdatedDate}, found ${actualUpdatedDate ?? 'none'}.`);
 		}
 	} else if (actualUpdatedDate !== null) {
 		fail(`Unexpected blog updatedDate for ${relativePath}: found ${actualUpdatedDate}.`);
+	}
+}
+
+const projectBaselineDateById = new Map();
+for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
+	if (!relativePath.startsWith('projects/')) continue;
+	const id = path.basename(relativePath, '.md');
+	const updatedDate = expectedProjectUpdatedDates[relativePath] ?? sourceDate;
+	projectBaselineDateById.set(id, new Date(`${updatedDate}T00:00:00.000Z`));
+}
+
+const latestRelatedByProject = new Map();
+for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
+	if (!relativePath.startsWith('blog/')) continue;
+	const source = readFileSync(sourceFilePath(relativePath), 'utf8');
+	const projectRef = sourceFrontmatterString(source, 'projectRef');
+	if (!projectRef) continue;
+
+	const entry = {
+		id: path.basename(relativePath, '.md'),
+		date: new Date(`${sourceDate}T00:00:00.000Z`),
+	};
+	const projectBaselineDate = projectBaselineDateById.get(projectRef);
+	if (projectBaselineDate && entry.date.valueOf() <= projectBaselineDate.valueOf()) continue;
+
+	const current = latestRelatedByProject.get(projectRef);
+	if (
+		!current ||
+		entry.date.getTime() > current.date.getTime() ||
+		(entry.date.getTime() === current.date.getTime() && entry.id.localeCompare(current.id) > 0)
+	) {
+		latestRelatedByProject.set(projectRef, entry);
 	}
 }
 
@@ -273,23 +366,28 @@ for (const forbidden of [`${site}/tags/AI/`, `${site}/projects/homelab-iac/`]) {
 	}
 }
 
-if (sitemapLocs.length !== 83) {
-	fail(`Sitemap route count changed: expected 83, found ${sitemapLocs.length}.`);
+if (sitemapLocs.length !== expectedBaseline.sitemapRouteCount) {
+	fail(`Sitemap route count changed: expected ${expectedBaseline.sitemapRouteCount}, found ${sitemapLocs.length}.`);
 }
 
 const tagDetailLocs = sitemapLocs.filter((loc) => {
 	const pathname = new URL(loc).pathname;
 	return pathname.startsWith('/tags/') && pathname !== '/tags/';
 });
-if (tagDetailLocs.length !== 56) {
-	fail(`Tag detail route count changed: expected 56, found ${tagDetailLocs.length}.`);
+if (tagDetailLocs.length !== expectedBaseline.tagDetailRouteCount) {
+	fail(`Tag detail route count changed: expected ${expectedBaseline.tagDetailRouteCount}, found ${tagDetailLocs.length}.`);
 }
 
 const blogIndex = readRequired('blog/index.html');
 const chronologicalIds = [...blogIndex.matchAll(/data-chronological-post="([^"]+)"/g)]
 	.map((match) => match[1]);
-if (chronologicalIds.length !== 15 || new Set(chronologicalIds).size !== 15) {
-	fail(`Chronological Writing index must contain 15 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
+if (
+	chronologicalIds.length !== expectedBaseline.chronologicalPostCount ||
+	new Set(chronologicalIds).size !== expectedBaseline.chronologicalPostCount
+) {
+	fail(
+		`Chronological Writing index must contain ${expectedBaseline.chronologicalPostCount} unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`,
+	);
 }
 
 for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
@@ -311,31 +409,34 @@ for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 	}
 
 	const html = readRequired(`projects/${id}/index.html`);
-	const updatedDate = new Date(`${approvedProjectUpdate}T00:00:00.000Z`);
+	const expectedUpdatedDate = expectedProjectUpdatedDates[relativePath];
+	const updatedDate = expectedUpdatedDate ? new Date(`${expectedUpdatedDate}T00:00:00.000Z`) : null;
 	if (!hasLabeledDate(html, 'Page published', date)) {
 		fail(`Project entry "${id}" is missing its UTC-stable Page published label.`);
 	}
-	if (!hasLabeledDate(html, 'Page updated', updatedDate)) {
+	if (updatedDate && !hasLabeledDate(html, 'Page updated', updatedDate)) {
 		fail(`Project entry "${id}" is missing its approved Page updated label.`);
 	}
-	if (id === 'homelab') {
-		if (
-			!html.includes('Latest related activity') ||
-			!html.includes(`/blog/${homelabPost}/`) ||
-			!/<time datetime="2026-07-17T00:00:00\.000Z">\s*Jul 17, 2026\s*<\/time>/.test(html)
-		) {
-			fail(`Project entry "${id}" is missing the expected latest related activity from "${homelabPost}".`);
+
+	const latestRelated = latestRelatedByProject.get(id);
+	if (latestRelated) {
+		if (!html.includes('Latest related activity') || !html.includes(`/blog/${latestRelated.id}/`)) {
+			fail(`Project entry "${id}" is missing the expected latest related activity from "${latestRelated.id}".`);
+		}
+		const expectedTime = `<time datetime="${latestRelated.date.toISOString()}">`;
+		if (!html.includes(expectedTime) || !html.includes(formatCalendarDate(latestRelated.date))) {
+			fail(`Project entry "${id}" latest related activity date does not match ${latestRelated.date.toISOString()}.`);
 		}
 	} else if (html.includes('Latest related activity')) {
 		fail(`Project entry "${id}" incorrectly exposes current Latest related activity.`);
 	}
 }
 
-if (countMatches(blogIndex, /data-series-group=/g) !== 2) {
-	fail('Writing index must render exactly two series groups.');
+if (countMatches(blogIndex, /data-series-group=/g) !== expectedBaseline.seriesGroupCount) {
+	fail(`Writing index must render exactly ${expectedBaseline.seriesGroupCount} series groups.`);
 }
-if (countMatches(blogIndex, /data-series-member=/g) !== 12) {
-	fail('Writing index must render exactly twelve ordered series-member links.');
+if (countMatches(blogIndex, /data-series-member=/g) !== expectedBaseline.seriesMemberCount) {
+	fail(`Writing index must render exactly ${expectedBaseline.seriesMemberCount} ordered series-member links.`);
 }
 
 const membersBySeries = new Map();
@@ -456,8 +557,8 @@ if (!/<rss[\s>]/i.test(rss) || !/<item>/i.test(rss)) {
 	fail('RSS output is missing an rss root or item entries.');
 }
 const rssItems = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((match) => match[1]);
-if (rssItems.length !== 15) {
-	fail(`RSS item count changed: expected 15, found ${rssItems.length}.`);
+if (rssItems.length !== expectedBaseline.rssItemCount) {
+	fail(`RSS item count changed: expected ${expectedBaseline.rssItemCount}, found ${rssItems.length}.`);
 }
 const rssDates = rssItems.map((item) => {
 	const value = item.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1];
@@ -528,23 +629,23 @@ if (graph) {
 		fail('graph.json edges is not an array.');
 	}
 
-	if (graph.nodes?.length !== 77) {
-		fail(`Graph node count changed: expected 77, found ${graph.nodes?.length ?? 'none'}.`);
+	if (graph.nodes?.length !== expectedBaseline.graphNodeCount) {
+		fail(`Graph node count changed: expected ${expectedBaseline.graphNodeCount}, found ${graph.nodes?.length ?? 'none'}.`);
 	}
-	if (graph.edges?.length !== 126) {
-		fail(`Graph edge count changed: expected 126, found ${graph.edges?.length ?? 'none'}.`);
+	if (graph.edges?.length !== expectedBaseline.graphEdgeCount) {
+		fail(`Graph edge count changed: expected ${expectedBaseline.graphEdgeCount}, found ${graph.edges?.length ?? 'none'}.`);
 	}
 
 	if (Array.isArray(graph.nodes)) {
 		const nodeHash = sortedHash(graph.nodes.map((node) => node.id));
-		const expectedNodeHash = '1941b4be1f63a581b55e4fe0e9d5a9aee17aab1aa18738c0e9031b282cfee2c5';
+		const expectedNodeHash = expectedBaseline.graphNodeHash;
 		if (nodeHash !== expectedNodeHash) {
 			fail(`Graph node-ID set changed: expected ${expectedNodeHash}, found ${nodeHash}.`);
 		}
 	}
 	if (Array.isArray(graph.edges)) {
 		const endpointHash = sortedHash(graph.edges.map((edge) => `${edge.source}->${edge.target}`));
-		const expectedEndpointHash = '658749b085b5ccf06e6010b2a4cda5f3d8c091ca244797314d0e8acf31bd9b4b';
+		const expectedEndpointHash = expectedBaseline.graphEdgeHash;
 		if (endpointHash !== expectedEndpointHash) {
 			fail(`Graph edge-endpoint set changed: expected ${expectedEndpointHash}, found ${endpointHash}.`);
 		}
@@ -572,6 +673,24 @@ if (failures.length > 0) {
 		console.error(`- ${failure}`);
 	}
 	process.exit(1);
+}
+
+if (strictTagLint && lintWarnings.length > 0) {
+	console.error('Generated-site tag-lint strict mode failed:');
+	for (const warning of lintWarnings) {
+		console.error(`- ${warning}`);
+	}
+	process.exit(1);
+}
+
+if (lintWarnings.length > 0) {
+	console.warn('Generated-site tag-lint warnings (non-blocking):');
+	for (const warning of lintWarnings) {
+		console.warn(`- ${warning}`);
+	}
+	if (!strictTagLint) {
+		console.warn('Set VERIFY_BUILD_STRICT_TAG_LINT=1 to fail on tag-lint warnings.');
+	}
 }
 
 console.log('Generated-site verification passed.');

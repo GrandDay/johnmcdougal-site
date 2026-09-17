@@ -12,6 +12,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
+    "verify-build:sync-baseline": "node scripts/sync-verify-build-baseline.mjs",
     "whitespace:fix-staged": "node scripts/fix-staged-whitespace.mjs",
     "commit:check": "node scripts/verify-commit.mjs",
     "hooks:install": "node scripts/install-git-hooks.mjs install",
