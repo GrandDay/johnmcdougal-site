@@ -28,7 +28,7 @@ const expectedSeries = [
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
-const standalonePosts = [homelabPost, 'hello-world'];
+const standalonePosts = ['whoops-i-accidentally-misassociated-this-file-extension', homelabPost, 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
@@ -38,6 +38,7 @@ const expectedSourceDates = {
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
+	'blog/Whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
 	'blog/working-with-ai-iteration-as-method.md': '2026-05-05',
 	'blog/working-with-ai-systems-that-build-systems.md': '2026-05-05',
@@ -272,23 +273,23 @@ for (const forbidden of [`${site}/tags/AI/`, `${site}/projects/homelab-iac/`]) {
 	}
 }
 
-if (sitemapLocs.length !== 80) {
-	fail(`Sitemap route count changed: expected 80, found ${sitemapLocs.length}.`);
+if (sitemapLocs.length !== 83) {
+	fail(`Sitemap route count changed: expected 83, found ${sitemapLocs.length}.`);
 }
 
 const tagDetailLocs = sitemapLocs.filter((loc) => {
 	const pathname = new URL(loc).pathname;
 	return pathname.startsWith('/tags/') && pathname !== '/tags/';
 });
-if (tagDetailLocs.length !== 54) {
-	fail(`Tag detail route count changed: expected 54, found ${tagDetailLocs.length}.`);
+if (tagDetailLocs.length !== 56) {
+	fail(`Tag detail route count changed: expected 56, found ${tagDetailLocs.length}.`);
 }
 
 const blogIndex = readRequired('blog/index.html');
 const chronologicalIds = [...blogIndex.matchAll(/data-chronological-post="([^"]+)"/g)]
 	.map((match) => match[1]);
-if (chronologicalIds.length !== 14 || new Set(chronologicalIds).size !== 14) {
-	fail(`Chronological Writing index must contain 14 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
+if (chronologicalIds.length !== 15 || new Set(chronologicalIds).size !== 15) {
+	fail(`Chronological Writing index must contain 15 unique posts; found ${chronologicalIds.length} entries and ${new Set(chronologicalIds).size} unique IDs.`);
 }
 
 for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
@@ -455,8 +456,8 @@ if (!/<rss[\s>]/i.test(rss) || !/<item>/i.test(rss)) {
 	fail('RSS output is missing an rss root or item entries.');
 }
 const rssItems = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((match) => match[1]);
-if (rssItems.length !== 14) {
-	fail(`RSS item count changed: expected 14, found ${rssItems.length}.`);
+if (rssItems.length !== 15) {
+	fail(`RSS item count changed: expected 15, found ${rssItems.length}.`);
 }
 const rssDates = rssItems.map((item) => {
 	const value = item.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1];
@@ -527,23 +528,23 @@ if (graph) {
 		fail('graph.json edges is not an array.');
 	}
 
-	if (graph.nodes?.length !== 74) {
-		fail(`Graph node count changed: expected 74, found ${graph.nodes?.length ?? 'none'}.`);
+	if (graph.nodes?.length !== 77) {
+		fail(`Graph node count changed: expected 77, found ${graph.nodes?.length ?? 'none'}.`);
 	}
-	if (graph.edges?.length !== 123) {
-		fail(`Graph edge count changed: expected 123, found ${graph.edges?.length ?? 'none'}.`);
+	if (graph.edges?.length !== 126) {
+		fail(`Graph edge count changed: expected 126, found ${graph.edges?.length ?? 'none'}.`);
 	}
 
 	if (Array.isArray(graph.nodes)) {
 		const nodeHash = sortedHash(graph.nodes.map((node) => node.id));
-		const expectedNodeHash = '14231758df09ec02341d89e34aec57a4c4db1db19d7b40528eab592c13f57ca4';
+		const expectedNodeHash = '1941b4be1f63a581b55e4fe0e9d5a9aee17aab1aa18738c0e9031b282cfee2c5';
 		if (nodeHash !== expectedNodeHash) {
 			fail(`Graph node-ID set changed: expected ${expectedNodeHash}, found ${nodeHash}.`);
 		}
 	}
 	if (Array.isArray(graph.edges)) {
 		const endpointHash = sortedHash(graph.edges.map((edge) => `${edge.source}->${edge.target}`));
-		const expectedEndpointHash = 'b4a980e165d31c60118d0da9fb347fe7119842907e94ada97d40de1d7e692ce0';
+		const expectedEndpointHash = '658749b085b5ccf06e6010b2a4cda5f3d8c091ca244797314d0e8acf31bd9b4b';
 		if (endpointHash !== expectedEndpointHash) {
 			fail(`Graph edge-endpoint set changed: expected ${expectedEndpointHash}, found ${endpointHash}.`);
 		}

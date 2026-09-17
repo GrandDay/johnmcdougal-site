@@ -35,7 +35,7 @@ All blog posts are available as raw Markdown at `/blog/[slug].md` alongside thei
 - [Phred](https://johnmcdougal.com/projects/phred/): Self-hosted AI infrastructure project for local model serving, GPU inference, and reproducible infrastructure.
 - [Aeon Desktop](https://johnmcdougal.com/projects/aeon-desktop/): Daily-use Linux workstation practice around Aeon Desktop, Distrobox, Podman, dotfiles, and repeatable tooling.
 - [Userspace](https://johnmcdougal.com/projects/userspace/): Repository-governed project and knowledge environment for portable workflows and source-of-truth boundaries.
-- [This Site](https://johnmcdougal.com/projects/johnmcdougal-site/): Astro 6 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior.
+- [This Site](https://johnmcdougal.com/projects/johnmcdougal-site/): Astro 7 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior.
 
 ## Tags
 - [All tags](https://johnmcdougal.com/tags/): Browse all content by topic.

@@ -14,7 +14,7 @@ The stack is deliberately boring in the best way: static files, no client-side f
 
 ## Stack
 
-- **[Astro 6](https://astro.build)** — static site generator
+- **[Astro 7](https://astro.build)** — static site generator
 - **[Cloudflare Pages](https://pages.cloudflare.com)** — hosting + CDN + deploy pipeline
 - **Markdown / MDX** — all content authored here
 - **Custom CSS** — three-theme system (light / dark / true black OLED), teal accent (`#14b8a6`)
@@ -42,8 +42,8 @@ public/
 
 Expected local runtime:
 
-- Node `22.22.0` (`.nvmrc`)
-- npm `10.9.4`
+- Node `24.19.0` (`.nvmrc`)
+- npm `12.0.2`
 - clean install path: `npm ci`
 
 | Command                 | Action                                                           |
@@ -51,6 +51,7 @@ Expected local runtime:
 | `npm ci`                | Install exactly from `package-lock.json`                         |
 | `npm run dev`           | Start local dev server at `localhost:4321`                       |
 | `npm run check`         | Run Astro content and type checks                                |
+| `npm run whitespace:fix-staged` | Trim trailing whitespace in staged text files and re-stage them |
 | `npm run build`         | Build production site to `./dist/`                               |
 | `npm run commit:check`  | Verify the explicit staged scope and run canonical validation     |
 | `npm run hooks:status`  | Report the effective Git hooks path and configuration origin      |
@@ -62,6 +63,31 @@ Expected local runtime:
 | `npm run review:stop`   | Stop only the script-owned preview server                        |
 
 The review server binds to `127.0.0.1` by default and writes ignored state/logs under `.tmp/`. When human testing is complete, stop it with `npm run review:stop` before committing unless the active packet gives different closure instructions.
+
+## Content addition guide
+
+When adding a new blog post or project page, follow this sequence to keep generated output and validation in sync.
+
+1. Create content from templates:
+    - blog: `src/content/blog/_template-blog.md` (or series template when applicable)
+    - projects: `src/content/projects/_template-project.md`
+2. Fill frontmatter carefully:
+    - set `pubDate` as `YYYY-MM-DD`
+    - keep blog slugs stable and lowercase URL-safe
+    - only set `updatedDate` for project entries when intentionally updating project state
+3. Run build checks:
+    - `npm run check`
+    - `npm run build`
+    - `npm run verify:build`
+4. If `npm run verify:build` fails after intentional content additions, update baseline expectations in `scripts/verify-build.mjs`:
+    - add the new source file/date in `expectedSourceDates`
+    - update `standalonePosts` if a non-series post is added
+    - update expected counts (sitemap, tags, chronological index, RSS)
+    - update graph expectations (node/edge counts and hashes) to match the new content graph
+5. Re-run full validation:
+    - `npm run validate`
+6. If you changed published content inventories, also verify generated inventories in `dist/` (for example `llms.txt`, `rss.xml`, and `graph.json`) reflect the new page.
+7. Trailing whitespace is now auto-trimmed for staged text files by the pre-commit hook. You can also run `npm run whitespace:fix-staged` manually before `npm run commit:check`.
 
 Commit workflow:
 

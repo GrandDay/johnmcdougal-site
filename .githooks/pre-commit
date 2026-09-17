@@ -3,4 +3,8 @@
 repo_root=$(git rev-parse --show-toplevel) || exit $?
 cd "$repo_root" || exit 1
 
+if ! npm run whitespace:fix-staged; then
+	exit $?
+fi
+
 exec npm run commit:check

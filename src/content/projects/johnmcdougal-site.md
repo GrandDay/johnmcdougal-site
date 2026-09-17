@@ -1,6 +1,6 @@
 ---
 title: "This Site"
-description: "The Astro 6 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior."
+description: "The Astro 7 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior."
 pubDate: 2026-04-15
 updatedDate: 2026-07-16
 status: active
@@ -12,7 +12,7 @@ liveUrl: "https://johnmcdougal.com"
 ## What this is
 
 The site you're on. It is my operational public site and documentation system:
-an Astro 6 project with separate content collections for writing and projects,
+an Astro 7 project with separate content collections for writing and projects,
 generated routes for posts, project pages, tags, RSS, sitemap output, and a
 content graph. It is deployed on Cloudflare Pages and documented through the
 site itself.
@@ -26,7 +26,7 @@ understand it well enough.
 
 ## Current state
 
-- Astro 6 with MDX and Markdown content, deployed to Cloudflare Pages from the
+- Astro 7 with MDX and Markdown content, deployed to Cloudflare Pages from the
   repository.
 - Separate Astro content collections for blog posts and projects, with project
   frontmatter for status, tags, repository links, and live links.
