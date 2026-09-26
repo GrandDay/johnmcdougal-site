@@ -67,30 +67,19 @@ The review server binds to `127.0.0.1` by default and writes ignored state/logs 
 
 ## Content addition guide
 
-When adding a new blog post or project page, follow this sequence to keep generated output and validation in sync.
+### Standalone blog post
 
-1. Create content from templates:
-    - blog: `src/content/blog/_template-blog.md` (or series template when applicable)
-    - projects: `src/content/projects/_template-project.md`
-2. Fill frontmatter carefully:
-    - set `pubDate` as `YYYY-MM-DD`
-    - keep blog slugs stable and lowercase URL-safe
-    - only set `updatedDate` for project entries when intentionally updating project state
-3. Run build checks:
-    - `npm run check`
-    - `npm run build`
-    - `npm run verify:build`
-4. If `npm run verify:build` fails after intentional content additions, update baseline expectations in `scripts/verify-build.mjs`:
-    - add the new source file/date in `expectedSourceDates`
-    - update `standalonePosts` if a non-series post is added
-    - update expected counts (sitemap, tags, chronological index, RSS)
-    - update graph expectations (node/edge counts and hashes) to match the new content graph
-5. Re-run full validation:
-    - `npm run validate`
-6. If you changed published content inventories, also verify generated inventories in `dist/` (for example `llms.txt`, `rss.xml`, and `graph.json`) reflect the new page.
-7. Trailing whitespace is now auto-trimmed for staged text files by the pre-commit hook. You can also run `npm run whitespace:fix-staged` manually before `npm run commit:check`.
-8. `scripts/verify-build.mjs` baselines are auto-synced during pre-commit (build + rewrite + restage). You can run `npm run verify-build:sync-baseline` manually before staging if you want to inspect the baseline update explicitly.
-9. `npm run verify:build` now includes source tag lint reporting. It warns when source tags normalize to different canonical values (case, spaces, duplicate variants). Warnings are non-blocking by default; set `VERIFY_BUILD_STRICT_TAG_LINT=1` to make tag-lint warnings fail validation.
+1. Copy `src/content/blog/_template-blog.md` to `src/content/blog/<lowercase-kebab-case-slug>.md`. The filename determines the URL; `title` is only the displayed heading. Uppercase and spaces are normalized for route checks, but use a stable lowercase filename with letters, numbers, and hyphens.
+2. Fill in `title`, `description`, `pubDate` (`YYYY-MM-DD`), and `tags`. The template includes every blog frontmatter field: uncomment optional `updatedDate`, `heroImage`, and `projectRef` as needed. For a series post, uncomment both `series` and `seriesPart`.
+3. Run `npm run check` to validate content and types. Use `npm run review` if you want a validated local preview.
+4. Stage the new post and any other intended content edits: `git add -- src/content/blog/<your-slug>.md`.
+5. Run `npm run verify-build:sync-baseline`. It rebuilds the site, updates the generated-output expectations in `scripts/verify-build.mjs`, and stages that file automatically. You do not need to edit baseline counts or hashes by hand. The pre-commit hook repeats this step automatically.
+6. Review `git status --short` and `git diff --cached`, then run `npm run commit:check`. Stage all intended changes and resolve unrelated unstaged or untracked files if the check refuses the snapshot.
+7. Commit after the check passes. The pre-commit hook syncs the baseline, fixes staged trailing whitespace, and runs the commit check again. Push only after the commit succeeds.
+
+For projects, copy `src/content/projects/_template-project.md`; set `updatedDate` only when intentionally updating project state. Run the same check, staging, baseline-sync, and commit steps above.
+
+`npm run verify:build` also reports source tags that would normalize to different canonical values (case, spaces, or duplicates). Warnings are non-blocking by default; set `VERIFY_BUILD_STRICT_TAG_LINT=1` to make them fail validation.
 
 ### Session automation summary
 

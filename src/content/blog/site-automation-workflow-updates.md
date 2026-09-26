@@ -1,5 +1,5 @@
 ---
-title: "How the site started validating itself before I can commit it"
+title: "How The Site Started Validating Itself Before I Can Commit It"
 description: "A quick note on the automation, content linting, and workflow cleanup added to johnmcdougal.com today."
 pubDate: 2026-09-17
 projectRef: "johnmcdougal-site"

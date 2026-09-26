@@ -30,20 +30,21 @@ const expectedSeries = [
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
-const standalonePosts = ['how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
+const standalonePosts = ['fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
 	'blog/email-authentication-spf-dkim-dmarc.md': '2026-05-04',
+	'blog/fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state.md': '2026-09-25',
 	'blog/hello-world.md': '2026-04-16',
 	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
-	'blog/How-to-Backup-and-Restore-the-Windows-Registry.md': '2026-09-17',
+	'blog/how-to-backup-and-restore-the-windows-registry.md': '2026-09-17',
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
 	'blog/proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home.md': '2026-09-17',
 	'blog/site-automation-workflow-updates.md': '2026-09-17',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
-	'blog/Whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
+	'blog/whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
 	'blog/working-with-ai-iteration-as-method.md': '2026-05-05',
 	'blog/working-with-ai-systems-that-build-systems.md': '2026-05-05',
@@ -66,16 +67,16 @@ const expectedProjectUpdatedDates = {
 	'projects/userspace.md': '2026-07-16',
 };
 const expectedBaseline = {
-	sitemapRouteCount: 87,
-	tagDetailRouteCount: 57,
-	chronologicalPostCount: 18,
+	sitemapRouteCount: 93,
+	tagDetailRouteCount: 62,
+	chronologicalPostCount: 19,
 	seriesGroupCount: 2,
 	seriesMemberCount: 12,
-	rssItemCount: 18,
-	graphNodeCount: 81,
-	graphEdgeCount: 143,
-	graphNodeHash: '024484804dbeadc8a70b27d28bc7a8dd46740eb798cab719bf9a8e491720cb2b',
-	graphEdgeHash: '5f19cf9670977e9a11dc1db7777fc480da81e43f6c008c2dc03a0b77141b4dfd',
+	rssItemCount: 19,
+	graphNodeCount: 87,
+	graphEdgeCount: 150,
+	graphNodeHash: '59a705fdf3f6d6d5e52c788d5f8a41c7a8dca9f30b323fff666157cd1546a9e1',
+	graphEdgeHash: '26fa0fab03380ec2840be758db8321ab529bd3281e7f7062c60ce060a81f12c2',
 };
 
 function fail(message) {
@@ -115,6 +116,11 @@ function filePath(...parts) {
 
 function sourceFilePath(relativePath) {
 	return path.join(root, 'src', 'content', ...relativePath.split('/'));
+}
+
+function contentEntryId(relativePath) {
+	const filename = path.basename(relativePath, path.extname(relativePath));
+	return filename.toLowerCase().replace(/\s+/g, '-');
 }
 
 function sourceFrontmatterValue(source, key) {
@@ -197,7 +203,7 @@ for (const [relativePath, expectedPubDate] of Object.entries(expectedSourceDates
 const projectBaselineDateById = new Map();
 for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 	if (!relativePath.startsWith('projects/')) continue;
-	const id = path.basename(relativePath, '.md');
+	const id = contentEntryId(relativePath);
 	const updatedDate = expectedProjectUpdatedDates[relativePath] ?? sourceDate;
 	projectBaselineDateById.set(id, new Date(`${updatedDate}T00:00:00.000Z`));
 }
@@ -210,7 +216,7 @@ for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 	if (!projectRef) continue;
 
 	const entry = {
-		id: path.basename(relativePath, '.md'),
+		id: contentEntryId(relativePath),
 		date: new Date(`${sourceDate}T00:00:00.000Z`),
 	};
 	const projectBaselineDate = projectBaselineDateById.get(projectRef);
@@ -391,7 +397,7 @@ if (
 }
 
 for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
-	const id = path.basename(relativePath, '.md');
+	const id = contentEntryId(relativePath);
 	const date = new Date(`${sourceDate}T00:00:00.000Z`);
 
 	if (relativePath.startsWith('blog/')) {
