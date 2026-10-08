@@ -30,7 +30,7 @@ const expectedSeries = [
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
-const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
+const standalonePosts = ['layering-a-proxmox-homelab', 'mermaid-diagrams-in-astro-with-local-bundling', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
@@ -40,6 +40,7 @@ const expectedSourceDates = {
 	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
 	'blog/how-to-backup-and-restore-the-windows-registry.md': '2026-09-17',
 	'blog/layering-a-proxmox-homelab.md': '2026-10-07',
+	'blog/mermaid-diagrams-in-astro-with-local-bundling.md': '2026-10-07',
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
 	'blog/proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home.md': '2026-09-17',
@@ -68,16 +69,16 @@ const expectedProjectUpdatedDates = {
 	'projects/userspace.md': '2026-07-16',
 };
 const expectedBaseline = {
-	sitemapRouteCount: 94,
-	tagDetailRouteCount: 62,
-	chronologicalPostCount: 20,
+	sitemapRouteCount: 97,
+	tagDetailRouteCount: 64,
+	chronologicalPostCount: 21,
 	seriesGroupCount: 2,
 	seriesMemberCount: 12,
-	rssItemCount: 20,
-	graphNodeCount: 88,
-	graphEdgeCount: 156,
-	graphNodeHash: '9e55436a0a6b1eedcbea9b5eab6d52dba98c4e12a0bd64630dc3079edde715e1',
-	graphEdgeHash: '0e2b3a0a12d0fe71162faced98e90a004b58a6d2f85b56e39319e93e096877f9',
+	rssItemCount: 21,
+	graphNodeCount: 91,
+	graphEdgeCount: 162,
+	graphNodeHash: '6372b9996408b6cef2ef2bdbba13bc0c92e297c5f8f529c8a3bdd7ffadaef6b9',
+	graphEdgeHash: '40e022794ab1c732e718c549002c84d3765319cd7644f6b3fd0b4c14db0f30d9',
 };
 
 function fail(message) {
