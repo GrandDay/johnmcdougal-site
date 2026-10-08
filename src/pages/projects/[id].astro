@@ -6,6 +6,8 @@ import FormattedDate from "../../components/FormattedDate.astro";
 import Header from "../../components/Header.astro";
 import { SITE_TITLE } from "../../consts";
 import { getLatestRelatedActivity } from "../../lib/content-dates.mjs";
+import { hasMermaidFence } from "../../lib/mermaid-content";
+import MermaidRenderer from "../../components/MermaidRenderer.astro";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");
@@ -17,6 +19,7 @@ export async function getStaticPaths() {
 
 const project = Astro.props;
 const { Content } = await render(project);
+const hasMermaid = hasMermaidFence(project.body);
 const { title, description, pubDate, updatedDate, heroImage, status, repoUrl, liveUrl, tags } = project.data;
 const socialImage = heroImage || undefined;
 
@@ -244,7 +247,15 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-m
             </div>
           )}
         </div>
-        <div class="content-body"><Content /></div>
+        <div class="content-body">
+          {hasMermaid ? (
+            <MermaidRenderer>
+              <Content />
+            </MermaidRenderer>
+          ) : (
+            <Content />
+          )}
+        </div>
         {linkedPosts.length > 0 && (
           <section class="linked-posts">
             <p class="linked-posts-heading">Posts about this project</p>

@@ -8,6 +8,11 @@ import { defineConfig, fontProviders } from 'astro/config';
 export default defineConfig({
 	site: 'https://johnmcdougal.com',
 	integrations: [mdx(), sitemap()],
+	markdown: {
+		syntaxHighlight: {
+			excludeLangs: ['mermaid'],
+		},
+	},
 	fonts: [
 		{
 			provider: fontProviders.local(),

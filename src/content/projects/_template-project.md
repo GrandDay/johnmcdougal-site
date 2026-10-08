@@ -27,6 +27,16 @@ status: wip         # wip | active | archived
 
 [Open questions, active threads. This IS the content -- not a gap.]
 
+<!-- Optional diagram: include a prose explanation, then add a Mermaid fence with accessible labels. -->
+<!--
+```mermaid
+flowchart LR
+	accTitle: Project service flow
+	accDescr: A client request reaches the service, which reads and writes project data.
+	Client --> Service --> Data
+```
+-->
+
 <!--
 ## Sources
 - [Source name](url) -- brief note on why it is referenced

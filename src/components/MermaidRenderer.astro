@@ -1,0 +1,176 @@
+<div class="mermaid-content" data-mermaid-content>
+	<slot />
+</div>
+
+<script>
+interface MermaidDiagram {
+	source: string;
+	pre: HTMLPreElement;
+	figure?: HTMLElement;
+	output?: HTMLElement;
+}
+
+const roots = Array.from(document.querySelectorAll<HTMLElement>('[data-mermaid-content]'));
+const diagrams: MermaidDiagram[] = roots.flatMap((root) =>
+	Array.from(root.querySelectorAll<HTMLElement>('pre code.language-mermaid'))
+		.flatMap((code) => {
+			const pre = code.closest('pre');
+			return pre ? [{ source: code.textContent ?? '', pre }] : [];
+		})
+);
+
+if (diagrams.length > 0) {
+	void (async () => {
+		try {
+			const { default: mermaid } = await import('mermaid');
+			let diagramId = 0;
+
+			function themeConfig() {
+				const rootStyles = getComputedStyle(document.documentElement);
+				const readColor = (name: string, fallback: string) => {
+					const value = rootStyles.getPropertyValue(name).trim();
+					return /^#[\da-f]{3,8}$/i.test(value) ? value : fallback;
+				};
+				const theme = document.documentElement.dataset.theme ?? 'light';
+				const background = readColor('--bg', '#f8fafc');
+				const surface = readColor('--bg-secondary', '#f1f5f9');
+				const text = readColor('--text', '#0f172a');
+				const muted = readColor('--text-muted', '#64748b');
+				const accent = readColor('--accent', '#0f766e');
+				const border = readColor('--border', '#cbd5e1');
+
+				return {
+					startOnLoad: false,
+					layout: 'dagre',
+					securityLevel: 'strict' as const,
+					suppressErrorRendering: true,
+					maxTextSize: 50000,
+					maxEdges: 500,
+					secure: ['securityLevel', 'startOnLoad', 'suppressErrorRendering', 'maxTextSize', 'maxEdges', 'theme', 'themeVariables', 'fontFamily', 'darkMode', 'layout'],
+					theme: 'base' as const,
+					darkMode: theme !== 'light',
+					fontFamily: getComputedStyle(document.body).fontFamily,
+					themeVariables: {
+						background,
+						primaryColor: surface,
+						primaryTextColor: text,
+						primaryBorderColor: accent,
+						secondaryColor: background,
+						secondaryTextColor: text,
+						secondaryBorderColor: border,
+						tertiaryColor: surface,
+						tertiaryTextColor: text,
+						tertiaryBorderColor: border,
+						lineColor: muted,
+						textColor: text,
+						edgeLabelBackground: background,
+						clusterBkg: surface,
+						clusterBorder: border,
+						noteBkgColor: surface,
+						noteTextColor: text,
+						noteBorderColor: border,
+					},
+				};
+			}
+
+			async function renderDiagram(diagram: MermaidDiagram) {
+				diagramId += 1;
+				const { svg } = await mermaid.render(`site-mermaid-${diagramId}`, diagram.source);
+
+				if (!diagram.figure || !diagram.output) {
+					const figure = document.createElement('figure');
+					figure.className = 'mermaid-diagram';
+
+					const output = document.createElement('div');
+					output.className = 'mermaid-output';
+					figure.append(output);
+
+					const sourceDetails = document.createElement('details');
+					sourceDetails.className = 'mermaid-source';
+					const summary = document.createElement('summary');
+					summary.textContent = 'View diagram source';
+					sourceDetails.append(summary, diagram.pre.cloneNode(true));
+					figure.append(sourceDetails);
+
+					diagram.pre.replaceWith(figure);
+					diagram.figure = figure;
+					diagram.output = output;
+				}
+
+				diagram.output.innerHTML = svg;
+			}
+
+			mermaid.initialize(themeConfig());
+			for (const diagram of diagrams) {
+				try {
+					await renderDiagram(diagram);
+				} catch (error) {
+					console.warn('Mermaid diagram could not be rendered; source remains available.', error);
+				}
+			}
+
+			let lastTheme = document.documentElement.dataset.theme;
+			let renderQueue = Promise.resolve();
+			const observer = new MutationObserver(() => {
+				const nextTheme = document.documentElement.dataset.theme;
+				if (nextTheme === lastTheme) return;
+				lastTheme = nextTheme;
+				renderQueue = renderQueue.then(async () => {
+					mermaid.initialize(themeConfig());
+					for (const diagram of diagrams) {
+						if (!diagram.figure) continue;
+						try {
+							await renderDiagram(diagram);
+						} catch (error) {
+							console.warn('Mermaid diagram theme update failed; previous rendering remains visible.', error);
+						}
+					}
+				});
+			});
+			observer.observe(document.documentElement, {
+				attributes: true,
+				attributeFilter: ['data-theme'],
+			});
+		} catch (error) {
+			console.warn('Mermaid could not be loaded; diagram source remains available.', error);
+		}
+	})();
+}
+</script>
+
+<style is:global>
+	.mermaid-content {
+		min-width: 0;
+	}
+	.mermaid-diagram {
+		min-width: 0;
+		margin: 1.75em 0;
+	}
+	.mermaid-output {
+		max-width: 100%;
+		overflow-x: auto;
+		padding: 0.75rem;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: var(--bg-secondary);
+	}
+	.mermaid-output svg {
+		display: block;
+		width: 100%;
+		height: auto;
+		max-width: 100%;
+		margin: 0 auto;
+	}
+	.mermaid-source {
+		margin-top: 0.5rem;
+		color: var(--text-muted);
+		font-size: 0.85rem;
+	}
+	.mermaid-source summary {
+		cursor: pointer;
+	}
+	.mermaid-source pre {
+		max-width: 100%;
+		overflow-x: auto;
+	}
+</style>

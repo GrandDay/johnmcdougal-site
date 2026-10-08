@@ -1,6 +1,8 @@
 ---
 import { type CollectionEntry, getCollection, render } from 'astro:content';
 import BlogPost from '../../layouts/BlogPost.astro';
+import MermaidRenderer from '../../components/MermaidRenderer.astro';
+import { hasMermaidFence } from '../../lib/mermaid-content';
 
 export async function getStaticPaths() {
 const posts = await getCollection('blog');
@@ -13,8 +15,15 @@ type Props = CollectionEntry<'blog'>;
 
 const post = Astro.props;
 const { Content } = await render(post);
+const hasMermaid = hasMermaidFence(post.body);
 ---
 
 <BlogPost {...post.data} id={post.id}>
+{hasMermaid ? (
+	<MermaidRenderer>
+		<Content />
+	</MermaidRenderer>
+) : (
 <Content />
+)}
 </BlogPost>

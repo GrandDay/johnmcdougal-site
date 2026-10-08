@@ -79,6 +79,19 @@ The review server binds to `127.0.0.1` by default and writes ignored state/logs 
 
 For projects, copy `src/content/projects/_template-project.md`; set `updatedDate` only when intentionally updating project state. Run the same check, staging, baseline-sync, and commit steps above.
 
+### Mermaid diagrams
+
+Write diagrams directly in blog or project Markdown/MDX bodies with a `mermaid` fenced code block. Mermaid is bundled locally and loaded only for pages that contain a Mermaid fence. The original fence remains in the page source; after successful rendering, readers can expand it with “View diagram source.” If JavaScript is disabled or a diagram has invalid syntax, the readable code fence remains visible. Add `accTitle` and `accDescr` inside diagrams, and explain the diagram's key point in the surrounding prose. The Mermaid runtime uses strict security settings; diagram-authored configuration cannot loosen them. Theme colors follow the site's light, dark, and OLED modes.
+
+```mermaid
+flowchart LR
+    accTitle: Example service flow
+    accDescr: A request moves from a client through an application service to stored data.
+    Client --> Service --> Data
+```
+
+Run `npm run check` and `npm run review`, then inspect the diagram in all themes and at mobile width. Check that the source fallback remains useful and that raw blog Markdown still contains the Mermaid fence. Mermaid uses Dagre as the site-wide default layout to avoid fetching ELK for ordinary diagrams; the source definition remains portable to Mermaid-aware tools. Mermaid code fences are not site graph nodes or relationships; the site graph continues to use content tags and `projectRef` metadata.
+
 `npm run verify:build` also reports source tags that would normalize to different canonical values (case, spaces, or duplicates). Warnings are non-blocking by default; set `VERIFY_BUILD_STRICT_TAG_LINT=1` to make them fail validation.
 
 ### Session automation summary

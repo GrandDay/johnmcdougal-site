@@ -24,6 +24,16 @@ tags: []
 
 [Body]
 
+<!-- Optional diagram: include a concise explanation in the surrounding prose. -->
+<!--
+```mermaid
+flowchart LR
+	accTitle: Example flow
+	accDescr: A short description of the relationship or sequence shown.
+	A[First step] --> B[Next step]
+```
+-->
+
 ---
 
 *[Landing point -- a question, a next step, or what you are still chewing on.]*
