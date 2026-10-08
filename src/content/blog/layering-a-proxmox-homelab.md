@@ -60,25 +60,46 @@ The picture is intentionally uneven. One role has a hardware constraint; the oth
 
 Inside a general-purpose services VM, Docker or Podman can give applications their own runtime boundaries without turning every small service into a separate guest. A home page, a network calculator, CyberChef, or other tools might live together if their data, access, and maintenance needs fit. Monitoring and logging may deserve a separate guest if you want visibility to survive an application-host failure.
 
-Once service definitions live in version control, the hypervisor is only one layer of automation. A self-hosted Forgejo or Gitea instance can hold deployment repositories and mirrors. A platform such as Dockploy can use a repository and branch as a deployment source, then use a webhook to redeploy on an approved push. OpenTofu and Ansible can manage infrastructure and configuration around that service layer. The same pattern works with other tools; the point is to make desired state reviewable and repeatable.
+Once service definitions live in version control, the hypervisor is only one layer of automation. A self-hosted Forgejo or Gitea instance can hold deployment repositories and mirrors. A platform such as Dokploy can use a repository and branch as a deployment source, then use a webhook to redeploy on an approved push. OpenTofu and Ansible can manage infrastructure and configuration around that service layer. The same pattern works with other tools; the point is to make desired state reviewable and repeatable.
 
 ## Layer network access and recovery
 
-The physical switch and router carry the network's real VLANs and inter-VLAN policy. Proxmox bridges and guest interfaces connect workloads to those networks. Where a cluster's virtual networking is useful, VXLAN-backed networks can provide a consistent guest-facing network across nodes while mapping to the VLANs the physical fabric carries. That is extra machinery, not a prerequisite; a simple bridge and a small number of VLANs may be the better starting point.
+The physical switch and router carry the network's real VLANs and inter-VLAN policy. For a simple setup, a Linux bridge can connect guest interfaces to a physical network, with VLAN-aware bridge settings and switch trunks where tagged networks are needed. Proxmox SDN adds a Zone and one or more VNets when a cluster-wide guest-facing network is useful: a Zone selects the networking technology and participating nodes, and a VNet belongs to that Zone and is what I attach to a guest NIC.
+
+With a VLAN Zone, each participating node uses an existing Linux or OVS bridge connected to the physical network. The switch ports carry the tagged VLANs, and the VNet's tag is the VLAN ID. After the SDN configuration is applied across the cluster, I select that VNet as the guest NIC's bridge; I do not add a second VLAN-to-VXLAN mapping step. A VXLAN Zone is a different choice: it builds a Layer 2 overlay across reachable IP peers, using UDP port 4789 by default. Its VNets use VXLAN IDs, and the encapsulation overhead needs to be included in the underlay MTU. VXLAN is useful when that overlay solves a real placement or network requirement, not as a synonym for a VLAN-backed VNet.
 
 Think about firewall policy at each boundary. A central router or firewall can govern traffic between VLANs, Proxmox can apply host or guest rules, and a guest can restrict its own services. These layers should reinforce a clear policy rather than duplicate rules nobody knows how to debug. A fully virtualized lab can also create an isolated network with one deliberate gateway to the physical network, if that fits the experiment.
 
 Backups and monitoring cross all of these boundaries. Proxmox Backup Server can protect guests on a schedule that reflects how much data and downtime you can tolerate. A second or offsite copy protects against failures that affect the primary backup store. Versioned configuration protects the recipe, not just the running machine. Restore tests tell you whether both paths work.
 
 ```mermaid
-flowchart LR
+flowchart TB
   accTitle: Network, configuration, and recovery boundaries
-  accDescr: Physical network policy connects selected Proxmox guest networks; versioned configuration and guest backups have separate copies and restore tests.
-  Internet[Internet] --> Router[Router and VLAN policy]
-  Router --> Switch[Physical switching]
-  Switch --> Host[Proxmox host bridge]
-  Host --> GuestNet[Guest VLAN or virtual network]
-  GuestNet --> Guest[VM or container]
+  accDescr {
+    A VLAN Zone uses an existing bridge on participating nodes and a VNet tag carried by physical switch trunks.
+    A separate VXLAN Zone connects VNets over reachable IP peers using UDP port 4789, with encapsulation MTU overhead.
+    Guest data is backed up separately from versioned service configuration, and both paths lead to a restore test.
+  }
+  Router[Router and firewall] --> Switch[Physical switch trunks carrying VLANs]
+  subgraph VLAN[Physical VLAN option]
+    Switch --> NodeA[Node A: existing vmbr0]
+    Switch --> NodeB[Node B: existing vmbr0]
+    NodeA --> VlanZone[VLAN Zone on selected nodes]
+    NodeB --> VlanZone
+    VlanZone --> VlanVnet[VNet app-net: tag 10 is VLAN ID]
+    VlanVnet --> VlanGuest[Guest NIC selects app-net]
+  end
+  subgraph VXLAN[Overlay option]
+    Underlay[Reachable IP underlay] --> PeerA[Node A VXLAN peer]
+    Underlay --> PeerB[Node B VXLAN peer]
+    PeerA <-->|UDP 4789| PeerB
+    PeerA --> VxlanZone[VXLAN Zone]
+    PeerB --> VxlanZone
+    VxlanZone --> VxlanVnet[VNet overlay-net: VXLAN ID]
+    VxlanVnet --> VxlanGuest[Guest NIC selects overlay-net]
+  end
+  VlanGuest --> Guest[VM or container]
+  VxlanGuest --> Guest
   Guest --> Service[Application service]
   Service --> Data[Persistent data]
   Service --> Config[Versioned service definition]
@@ -87,7 +108,7 @@ flowchart LR
   Config --> Git[Self-hosted Git remote]
   Copy --> Restore[Restore test]
   Git --> Restore
-  Monitoring[Monitoring and logs] -. observes .-> Host
+  Monitoring[Monitoring and logs] -. observes .-> NodeA
   Monitoring -. observes .-> Service
 ```
 

@@ -27,7 +27,7 @@ status: wip         # wip | active | archived
 
 [Open questions, active threads. This IS the content -- not a gap.]
 
-<!-- Optional diagram: include a prose explanation, then add a Mermaid fence with accessible labels. -->
+<!-- Optional diagram: explain it in prose, then add a Mermaid fence with accTitle/accDescr. It renders at natural size with scrolling, opt-in Pan mode, and a full-size viewer; colors follow the site's light, dark, and OLED themes. -->
 <!--
 ```mermaid
 flowchart LR
@@ -36,6 +36,8 @@ flowchart LR
 	Client --> Service --> Data
 ```
 -->
+
+<!-- VS Code snippets: mermaid-flowchart and mermaid-sequence. Rendering is automatic on any project page with a Mermaid fence; source remains available if rendering fails or JavaScript is disabled. -->
 
 <!--
 ## Sources

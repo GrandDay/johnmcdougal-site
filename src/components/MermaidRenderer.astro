@@ -3,11 +3,16 @@
 </div>
 
 <script>
+import type { PanzoomObject } from '@panzoom/panzoom';
+
 interface MermaidDiagram {
 	source: string;
 	pre: HTMLPreElement;
 	figure?: HTMLElement;
 	output?: HTMLElement;
+	panButton?: HTMLButtonElement;
+	viewButton?: HTMLButtonElement;
+	inlinePan?: PanzoomObject;
 }
 
 const roots = Array.from(document.querySelectorAll<HTMLElement>('[data-mermaid-content]'));
@@ -22,8 +27,143 @@ const diagrams: MermaidDiagram[] = roots.flatMap((root) =>
 if (diagrams.length > 0) {
 	void (async () => {
 		try {
-			const { default: mermaid } = await import('mermaid');
+			const [{ default: mermaid }, { default: Panzoom }] = await Promise.all([
+				import('mermaid'),
+				import('@panzoom/panzoom'),
+			]);
 			let diagramId = 0;
+			let modalPan: PanzoomObject | undefined;
+			let activeDiagram: MermaidDiagram | undefined;
+			let focusReturnTarget: HTMLElement | null = null;
+			let renderQueue = Promise.resolve();
+
+			const dialog = document.createElement('dialog');
+			dialog.className = 'mermaid-viewer';
+			dialog.setAttribute('aria-labelledby', 'mermaid-viewer-title');
+			dialog.innerHTML = `
+				<div class="mermaid-viewer-header">
+					<h2 id="mermaid-viewer-title">Diagram</h2>
+					<div class="mermaid-viewer-controls" aria-label="Diagram controls">
+						<button type="button" data-viewer-action="zoom-in" aria-label="Zoom in">Zoom in</button>
+						<button type="button" data-viewer-action="zoom-out" aria-label="Zoom out">Zoom out</button>
+						<button type="button" data-viewer-action="fit">Fit</button>
+						<button type="button" data-viewer-action="reset">1:1</button>
+						<button type="button" data-viewer-action="close" aria-label="Close diagram viewer">Close</button>
+					</div>
+				</div>
+				<div class="mermaid-viewer-viewport" tabindex="0" aria-label="Scrollable full-size diagram"></div>
+			`;
+			document.body.append(dialog);
+			const viewerTitle = dialog.querySelector<HTMLElement>('#mermaid-viewer-title')!;
+			const viewerViewport = dialog.querySelector<HTMLElement>('.mermaid-viewer-viewport')!;
+
+			function naturalSize(svg: SVGSVGElement) {
+				const viewBox = svg.viewBox.baseVal;
+				const width = viewBox.width || Number.parseFloat(svg.getAttribute('width') ?? '') || 1;
+				const height = viewBox.height || Number.parseFloat(svg.getAttribute('height') ?? '') || 1;
+				svg.style.width = `${width}px`;
+				svg.style.height = `${height}px`;
+				svg.style.maxWidth = 'none';
+				svg.dataset.naturalWidth = String(width);
+				svg.dataset.naturalHeight = String(height);
+				svg.setAttribute('width', String(width));
+				svg.setAttribute('height', String(height));
+				return { width, height };
+			}
+
+			function clearModalPan() {
+				const svg = viewerViewport.querySelector<SVGSVGElement>('svg');
+				modalPan?.reset({ animate: false });
+				if (svg && modalPan) svg.removeEventListener('wheel', modalPan.zoomWithWheel);
+				modalPan?.destroy();
+				modalPan?.resetStyle();
+				if (svg) {
+					svg.style.removeProperty('transform');
+					svg.style.removeProperty('transition');
+				}
+				modalPan = undefined;
+			}
+
+			function clearInlinePan(diagram: MermaidDiagram) {
+				const svg = diagram.output?.querySelector<SVGSVGElement>('svg');
+				diagram.inlinePan?.reset({ animate: false });
+				if (svg && diagram.inlinePan) svg.removeEventListener('wheel', diagram.inlinePan.zoomWithWheel);
+				diagram.inlinePan?.destroy();
+				diagram.inlinePan?.resetStyle();
+				if (svg) {
+					svg.style.removeProperty('transform');
+					svg.style.removeProperty('transition');
+				}
+				diagram.inlinePan = undefined;
+				diagram.panButton?.setAttribute('aria-pressed', 'false');
+				if (diagram.panButton) diagram.panButton.textContent = 'Enable pan';
+				if (svg) {
+					window.setTimeout(() => {
+						if (svg.isConnected && !diagram.inlinePan) {
+							svg.style.removeProperty('transform');
+							svg.style.removeProperty('transition');
+						}
+					}, 0);
+				}
+			}
+
+			function createPanzoom(svg: SVGSVGElement, overflow: string) {
+				const panzoom = Panzoom(svg, {
+					minScale: 0.1,
+					maxScale: 8,
+					step: 0.25,
+					panOnlyWhenZoomed: false,
+					pinchAndPan: true,
+					touchAction: 'none',
+					overflow,
+					cursor: 'grab',
+				});
+				svg.addEventListener('wheel', panzoom.zoomWithWheel);
+				return panzoom;
+			}
+
+			function shouldAnimate() {
+				return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+			}
+
+			function enqueueRender(task: () => Promise<void>) {
+				renderQueue = renderQueue.then(task).catch((error) => {
+					console.warn('Mermaid diagram could not be rendered; source remains available.', error);
+				});
+				return renderQueue;
+			}
+
+			async function renderSvg(source: string, target: HTMLElement) {
+				diagramId += 1;
+				const { svg } = await mermaid.render(`site-mermaid-${diagramId}`, source);
+				target.innerHTML = svg;
+				const renderedSvg = target.querySelector<SVGSVGElement>('svg');
+				if (!renderedSvg) throw new Error('Mermaid returned no SVG.');
+				naturalSize(renderedSvg);
+				return renderedSvg;
+			}
+
+			function diagramTitle(diagram: MermaidDiagram) {
+				return diagram.source.match(/^\s*accTitle\s*:\s*(.+)$/m)?.[1]?.trim() || 'Diagram';
+			}
+
+			async function openViewer(diagram: MermaidDiagram, trigger: HTMLElement) {
+				activeDiagram = diagram;
+				focusReturnTarget = trigger;
+				viewerTitle.textContent = diagramTitle(diagram);
+				viewerViewport.replaceChildren();
+				clearModalPan();
+				if (!dialog.open) dialog.showModal();
+				await enqueueRender(async () => {
+					if (activeDiagram !== diagram || !dialog.open) return;
+					const svg = await renderSvg(diagram.source, viewerViewport);
+					if (activeDiagram !== diagram || !dialog.open) {
+						viewerViewport.replaceChildren();
+						return;
+					}
+					modalPan = createPanzoom(svg, 'auto');
+				});
+			}
 
 			function themeConfig() {
 				const rootStyles = getComputedStyle(document.documentElement);
@@ -48,6 +188,7 @@ if (diagrams.length > 0) {
 					maxEdges: 500,
 					secure: ['securityLevel', 'startOnLoad', 'suppressErrorRendering', 'maxTextSize', 'maxEdges', 'theme', 'themeVariables', 'fontFamily', 'darkMode', 'layout'],
 					theme: 'base' as const,
+					flowchart: { useMaxWidth: false },
 					darkMode: theme !== 'light',
 					fontFamily: getComputedStyle(document.body).fontFamily,
 					themeVariables: {
@@ -74,16 +215,46 @@ if (diagrams.length > 0) {
 			}
 
 			async function renderDiagram(diagram: MermaidDiagram) {
-				diagramId += 1;
-				const { svg } = await mermaid.render(`site-mermaid-${diagramId}`, diagram.source);
-
 				if (!diagram.figure || !diagram.output) {
 					const figure = document.createElement('figure');
 					figure.className = 'mermaid-diagram';
 
+					const controls = document.createElement('div');
+					controls.className = 'mermaid-controls';
+					const panButton = document.createElement('button');
+					panButton.type = 'button';
+					panButton.className = 'mermaid-action';
+					panButton.textContent = 'Enable pan';
+					panButton.setAttribute('aria-pressed', 'false');
+					panButton.addEventListener('click', () => {
+						if (diagram.inlinePan) {
+							clearInlinePan(diagram);
+							return;
+						}
+						const svg = diagram.output?.querySelector<SVGSVGElement>('svg');
+						if (!svg) return;
+						diagram.inlinePan = createPanzoom(svg, 'auto');
+						panButton.textContent = 'Disable pan';
+						panButton.setAttribute('aria-pressed', 'true');
+					});
+					const viewButton = document.createElement('button');
+					viewButton.type = 'button';
+					viewButton.className = 'mermaid-action';
+					viewButton.textContent = 'View full size';
+					viewButton.addEventListener('click', () => void openViewer(diagram, viewButton));
+					controls.append(panButton, viewButton);
+
 					const output = document.createElement('div');
 					output.className = 'mermaid-output';
+					output.addEventListener('click', (event) => {
+						const target = event.target;
+						const svg = output.querySelector('svg');
+						if (target instanceof Node && svg?.contains(target) && !diagram.inlinePan) {
+							void openViewer(diagram, viewButton);
+						}
+					});
 					figure.append(output);
+					figure.prepend(controls);
 
 					const sourceDetails = document.createElement('details');
 					sourceDetails.className = 'mermaid-source';
@@ -95,35 +266,88 @@ if (diagrams.length > 0) {
 					diagram.pre.replaceWith(figure);
 					diagram.figure = figure;
 					diagram.output = output;
+					diagram.panButton = panButton;
+					diagram.viewButton = viewButton;
 				}
 
-				diagram.output.innerHTML = svg;
+				clearInlinePan(diagram);
+				await renderSvg(diagram.source, diagram.output);
 			}
+
+			for (const button of dialog.querySelectorAll<HTMLButtonElement>('[data-viewer-action]')) {
+				button.addEventListener('click', () => {
+					if (button.dataset.viewerAction === 'close') {
+						dialog.close();
+					} else if (button.dataset.viewerAction === 'zoom-in') {
+						modalPan?.zoomIn({ animate: shouldAnimate() });
+					} else if (button.dataset.viewerAction === 'zoom-out') {
+						modalPan?.zoomOut({ animate: shouldAnimate() });
+					} else if (button.dataset.viewerAction === 'reset') {
+						modalPan?.reset({ animate: shouldAnimate() });
+					} else if (button.dataset.viewerAction === 'fit' && modalPan && activeDiagram) {
+						const svg = viewerViewport.querySelector<SVGSVGElement>('svg');
+						if (!svg) return;
+						const width = Number(svg.dataset.naturalWidth);
+						const height = Number(svg.dataset.naturalHeight);
+						const scale = Math.min(viewerViewport.clientWidth / width, viewerViewport.clientHeight / height);
+						modalPan.reset({ animate: false });
+						modalPan.zoom(scale, { animate: false });
+					}
+				});
+			}
+			dialog.addEventListener('keydown', (event) => {
+				if (event.key === 'Escape' && dialog.open) {
+					event.preventDefault();
+					dialog.close();
+				}
+			});
+
+			let backdropPointer: { x: number; y: number } | undefined;
+			dialog.addEventListener('pointerdown', (event) => {
+				backdropPointer = event.target === dialog ? { x: event.clientX, y: event.clientY } : undefined;
+			});
+			dialog.addEventListener('pointerup', (event) => {
+				if (
+					backdropPointer &&
+					event.target === dialog &&
+					Math.hypot(event.clientX - backdropPointer.x, event.clientY - backdropPointer.y) < 5
+				) {
+					dialog.close();
+				}
+				backdropPointer = undefined;
+			});
+			dialog.addEventListener('close', () => {
+				clearModalPan();
+				viewerViewport.replaceChildren();
+				activeDiagram = undefined;
+				focusReturnTarget?.focus();
+				focusReturnTarget = null;
+			});
 
 			mermaid.initialize(themeConfig());
 			for (const diagram of diagrams) {
-				try {
-					await renderDiagram(diagram);
-				} catch (error) {
-					console.warn('Mermaid diagram could not be rendered; source remains available.', error);
-				}
+				await enqueueRender(() => renderDiagram(diagram));
 			}
 
 			let lastTheme = document.documentElement.dataset.theme;
-			let renderQueue = Promise.resolve();
 			const observer = new MutationObserver(() => {
 				const nextTheme = document.documentElement.dataset.theme;
 				if (nextTheme === lastTheme) return;
 				lastTheme = nextTheme;
-				renderQueue = renderQueue.then(async () => {
+				void enqueueRender(async () => {
 					mermaid.initialize(themeConfig());
 					for (const diagram of diagrams) {
-						if (!diagram.figure) continue;
-						try {
-							await renderDiagram(diagram);
-						} catch (error) {
-							console.warn('Mermaid diagram theme update failed; previous rendering remains visible.', error);
+						if (diagram.figure) await renderDiagram(diagram);
+					}
+					if (activeDiagram && dialog.open) {
+						const diagram = activeDiagram;
+						clearModalPan();
+						const svg = await renderSvg(diagram.source, viewerViewport);
+						if (activeDiagram !== diagram || !dialog.open) {
+							viewerViewport.replaceChildren();
+							return;
 						}
+						modalPan = createPanzoom(svg, 'auto');
 					}
 				});
 			});
@@ -146,9 +370,40 @@ if (diagrams.length > 0) {
 		min-width: 0;
 		margin: 1.75em 0;
 	}
+	.mermaid-controls,
+	.mermaid-viewer-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+	}
+	.mermaid-action,
+	.mermaid-viewer button {
+		min-height: 2.5rem;
+		padding: 0.35rem 0.7rem;
+		border: 1px solid var(--border);
+		border-radius: 4px;
+		background: var(--bg);
+		color: var(--text);
+		font: inherit;
+		font-size: 0.875rem;
+		cursor: pointer;
+	}
+	.mermaid-action:hover,
+	.mermaid-viewer button:hover {
+		border-color: var(--accent);
+	}
+	.mermaid-action:focus-visible,
+	.mermaid-viewer button:focus-visible,
+	.mermaid-viewer-viewport:focus-visible {
+		outline: 2px solid var(--accent);
+		outline-offset: 2px;
+	}
 	.mermaid-output {
 		max-width: 100%;
-		overflow-x: auto;
+		max-height: min(70vh, 42rem);
+		overflow: auto;
+		touch-action: pan-x pan-y;
 		padding: 0.75rem;
 		border: 1px solid var(--border);
 		border-radius: 6px;
@@ -156,10 +411,49 @@ if (diagrams.length > 0) {
 	}
 	.mermaid-output svg {
 		display: block;
-		width: 100%;
-		height: auto;
+		max-width: none !important;
+		margin: 0;
+	}
+	.mermaid-viewer {
+		width: min(96vw, 96rem);
+		max-width: none;
+		max-height: calc(100dvh - 2rem);
+		padding: 1rem;
+		border: 1px solid var(--border);
+		border-radius: 6px;
+		background: var(--bg);
+		color: var(--text);
+	}
+	.mermaid-viewer::backdrop {
+		background: rgb(0 0 0 / 0.72);
+	}
+	.mermaid-viewer-header {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 0.75rem;
+	}
+	.mermaid-viewer-header h2 {
+		margin: 0;
+		font-size: 1.1rem;
+	}
+	.mermaid-viewer-controls {
+		justify-content: flex-end;
+		margin: 0;
+	}
+	.mermaid-viewer-viewport {
 		max-width: 100%;
-		margin: 0 auto;
+		max-height: calc(100dvh - 8rem);
+		overflow: auto;
+		border: 1px solid var(--border);
+		background: var(--bg-secondary);
+		overscroll-behavior: contain;
+	}
+	.mermaid-viewer-viewport svg {
+		display: block;
+		max-width: none !important;
+		margin: 0;
 	}
 	.mermaid-source {
 		margin-top: 0.5rem;

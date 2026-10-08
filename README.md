@@ -81,7 +81,7 @@ For projects, copy `src/content/projects/_template-project.md`; set `updatedDate
 
 ### Mermaid diagrams
 
-Write diagrams directly in blog or project Markdown/MDX bodies with a `mermaid` fenced code block. Mermaid is bundled locally and loaded only for pages that contain a Mermaid fence. The original fence remains in the page source; after successful rendering, readers can expand it with “View diagram source.” If JavaScript is disabled or a diagram has invalid syntax, the readable code fence remains visible. Add `accTitle` and `accDescr` inside diagrams, and explain the diagram's key point in the surrounding prose. The Mermaid runtime uses strict security settings; diagram-authored configuration cannot loosen them. Theme colors follow the site's light, dark, and OLED modes.
+Write diagrams directly in blog or project Markdown/MDX bodies with a `mermaid` fenced code block. Any page containing a Mermaid fence gets the same locally bundled renderer; Mermaid and Panzoom load only on those pages. Diagrams stay at their natural size in a bounded, two-axis scroll area instead of shrinking to the article column. Readers can opt into inline Pan mode or open the full-size viewer, which starts at natural size and offers Zoom in, Zoom out, Fit, 1:1, and Close controls. The original fence remains in page source and can be expanded with “View diagram source.” If JavaScript is disabled or rendering fails, the readable code fence remains visible. Add `accTitle` and `accDescr` inside diagrams, and explain the diagram's key point in surrounding prose. The Mermaid runtime uses strict security settings; diagram-authored configuration cannot loosen them. Theme colors follow the site's light, dark, and OLED modes.
 
 ```mermaid
 flowchart LR
@@ -90,7 +90,7 @@ flowchart LR
     Client --> Service --> Data
 ```
 
-Run `npm run check` and `npm run review`, then inspect the diagram in all themes and at mobile width. Check that the source fallback remains useful and that raw blog Markdown still contains the Mermaid fence. Mermaid uses Dagre as the site-wide default layout to avoid fetching ELK for ordinary diagrams; the source definition remains portable to Mermaid-aware tools. Mermaid code fences are not site graph nodes or relationships; the site graph continues to use content tags and `projectRef` metadata.
+Use the `mermaid-flowchart` and `mermaid-sequence` snippets in Markdown/MDX files to start with accessible title and description fields. Run `npm run check` and `npm run review`, then inspect diagrams in separate desktop and mobile viewport passes and in all themes. Check label bounds, inline scrolling and Pan mode, modal controls and keyboard/focus behavior, the source fallback, and raw Markdown. Mermaid uses Dagre as the site-wide default layout to avoid fetching ELK for ordinary diagrams; the source definition remains portable to Mermaid-aware tools. Mermaid code fences are not site graph nodes or relationships; the site graph continues to use content tags and `projectRef` metadata.
 
 `npm run verify:build` also reports source tags that would normalize to different canonical values (case, spaces, or duplicates). Warnings are non-blocking by default; set `VERIFY_BUILD_STRICT_TAG_LINT=1` to make them fail validation.
 

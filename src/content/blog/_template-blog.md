@@ -24,7 +24,7 @@ tags: []
 
 [Body]
 
-<!-- Optional diagram: include a concise explanation in the surrounding prose. -->
+<!-- Optional diagram: explain it in prose, then use accTitle/accDescr. It renders at natural size with scrolling, opt-in Pan mode, and a full-size viewer; colors follow the site's light, dark, and OLED themes. -->
 <!--
 ```mermaid
 flowchart LR
@@ -33,6 +33,8 @@ flowchart LR
 	A[First step] --> B[Next step]
 ```
 -->
+
+<!-- VS Code snippets: mermaid-flowchart and mermaid-sequence. Keep the fence in source; failed or disabled rendering leaves it readable. -->
 
 ---
 

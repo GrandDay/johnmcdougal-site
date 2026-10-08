@@ -1,0 +1,29 @@
+{
+	"Mermaid flowchart": {
+		"scope": "markdown,mdx",
+		"prefix": "mermaid-flowchart",
+		"body": [
+			"```mermaid",
+			"flowchart ${1:LR}",
+			"  accTitle: ${2:Diagram title}",
+			"  accDescr: ${3:Describe the relationships shown in this diagram.}",
+			"  ${4:Start} --> ${5:End}",
+			"```"
+		],
+		"description": "Accessible Mermaid flowchart"
+	},
+	"Mermaid sequence diagram": {
+		"scope": "markdown,mdx",
+		"prefix": "mermaid-sequence",
+		"body": [
+			"```mermaid",
+			"sequenceDiagram",
+			"  accTitle: ${1:Diagram title}",
+			"  accDescr: ${2:Describe the participants and message flow.}",
+			"  ${3:Client}->>${4:Service}: ${5:Request}",
+			"  ${4:Service}-->>${3:Client}: ${6:Response}",
+			"```"
+		],
+		"description": "Accessible Mermaid sequence diagram"
+	}
+}
