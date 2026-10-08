@@ -6,24 +6,32 @@ projectRef: "johnmcdougal-site"
 tags: ["site-build", "automation", "workflow", "documentation", "meta"]
 ---
 
-> **TL;DR:** I taught the site to keep its own house in order: better content normalization, safer pre-commit automation, and a build check that now reports tag drift before it turns into route drift.
+> **TL;DR:** The site now normalizes content tags, refreshes its generated-output baselines during the commit workflow, and checks blog routes against normalized filenames instead of raw source names.
 
-Today’s cleanup was less about adding one feature and more about removing a little friction from the whole publishing loop.
+The first pass at this workflow removed some repetitive cleanup, but a new standalone post exposed a gap: Astro built the route from a lowercased, hyphenated filename while the verifier expected the source filename verbatim. The page built correctly, then the commit check failed while looking for a route that did not exist.
 
-The site now does a better job of policing its own content. Tags are normalized at ingest, so case and spacing differences do not create noisy variations later in the build. The generated-site verification step also reports tag-lint warnings when source frontmatter would normalize differently, which gives me a cheap signal before the mismatch turns into a mess.
+The verifier now keeps those two identities separate. It reads content using the real source path, then normalizes the filename when checking the generated route. Lowercase kebab-case filenames are still the convention; the check is simply aligned with the route Astro actually builds.
 
-## What changed
+## The posting loop
 
-I also tightened the commit workflow so the boring parts happen automatically. The pre-commit path now syncs the `verify-build` baseline, trims staged trailing whitespace, and then runs the strict commit check. That means I can keep writing without manually babysitting the same cleanup steps every time.
+For a new post, the important order is now explicit: create it from the template, fill the required frontmatter, run `npm run check`, then stage the post before running `npm run verify-build:sync-baseline`. The sync rebuilds the site, updates and stages the `verify-build` expectations, and avoids hand-editing counts or hashes. `npm run commit:check` then verifies that the staged snapshot matches the worktree. The pre-commit hook repeats baseline sync, trims staged trailing whitespace, and runs that check before Git creates the commit. Push comes after a successful commit.
 
-The other part of the work was documentation. I updated the README to reflect the current runtime pinning, content-addition flow, and the new verification behavior so the process is visible instead of implicit.
+That staging step matters: the commit check rejects untracked files so it can validate exactly what is proposed for the commit. In my failed attempt, I pushed before a commit had succeeded, so Git correctly had nothing new to send.
+
+The blog template now shows every supported frontmatter field. The common fields stay active; less-used fields such as `updatedDate`, `heroImage`, `projectRef`, `series`, and `seriesPart` are commented out until needed. Series metadata must be added as a pair, and a new series also needs a definition in `src/lib/series.ts`.
+
+## Generated versus curated
+
+Most publishing surfaces follow the collections automatically. Adding content generates its detail route, tag pages, raw Markdown endpoint for blog posts, RSS item, sitemap entry, and graph node and edges. A blog post joins a project in the graph when its `projectRef` matches that project’s entry ID.
+
+The exception is `public/llms.txt`, which is a curated inventory rather than a live list of every entry. Update it when the public index should feature a new post, project, or series. The project index also has optional editorial priority and evidence text for selected projects; ordinary projects still appear without adding those highlights.
 
 ## Why this matters
 
-This site is supposed to be a live record of the work, not just a polished front end. If the workflow is fragile, the writing slows down. If the validation is stale, the site drifts. Today’s changes push the system a little closer to being something I can trust while I keep shipping content.
+This site is supposed to be a live record of the work, not just a polished front end. If the workflow is fragile, writing slows down; if validation checks the wrong route, it becomes noise instead of protection. The changes make the routine path clearer while keeping the exceptions visible.
 
-I am still iterating on the shape of the workflow itself, but the direction is clear: fewer manual fixes, more durable rules, and better feedback when the content starts to drift from the shape the site expects.
+I am still iterating on the workflow, but the direction is clear: fewer manual fixes, generated surfaces that follow their source data, and a small number of intentional editorial inventories.
 
 ---
 
-*What else should the site be able to verify for me before I ever open a commit?*
+*What other publishing checks should happen automatically, and which parts should stay deliberately curated?*

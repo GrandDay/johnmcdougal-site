@@ -30,7 +30,7 @@ const expectedSeries = [
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
-const standalonePosts = ['fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
+const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
@@ -39,6 +39,7 @@ const expectedSourceDates = {
 	'blog/hello-world.md': '2026-04-16',
 	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
 	'blog/how-to-backup-and-restore-the-windows-registry.md': '2026-09-17',
+	'blog/layering-a-proxmox-homelab.md': '2026-10-07',
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
 	'blog/proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home.md': '2026-09-17',
@@ -67,16 +68,16 @@ const expectedProjectUpdatedDates = {
 	'projects/userspace.md': '2026-07-16',
 };
 const expectedBaseline = {
-	sitemapRouteCount: 93,
+	sitemapRouteCount: 94,
 	tagDetailRouteCount: 62,
-	chronologicalPostCount: 19,
+	chronologicalPostCount: 20,
 	seriesGroupCount: 2,
 	seriesMemberCount: 12,
-	rssItemCount: 19,
-	graphNodeCount: 87,
-	graphEdgeCount: 150,
-	graphNodeHash: '59a705fdf3f6d6d5e52c788d5f8a41c7a8dca9f30b323fff666157cd1546a9e1',
-	graphEdgeHash: '26fa0fab03380ec2840be758db8321ab529bd3281e7f7062c60ce060a81f12c2',
+	rssItemCount: 20,
+	graphNodeCount: 88,
+	graphEdgeCount: 156,
+	graphNodeHash: '9e55436a0a6b1eedcbea9b5eab6d52dba98c4e12a0bd64630dc3079edde715e1',
+	graphEdgeHash: '0e2b3a0a12d0fe71162faced98e90a004b58a6d2f85b56e39319e93e096877f9',
 };
 
 function fail(message) {
