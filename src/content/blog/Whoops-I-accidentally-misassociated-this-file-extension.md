@@ -43,7 +43,7 @@ Because the default program no longer exists, Windows will completely clear the 
 
 If the bogus trick doesn't stick due to a stubborn system policy, you can force the association to reset via the Windows Registry.
 
-*⚠️ **Warning:** Editing the registry can cause system instability if done incorrectly. Before proceeding, please read my guide on [How to Backup and Restore the Windows Registry](#link-to-your-backup-page-here) to ensure you can revert your changes if you make a mistake.*
+*⚠️ **Warning:** Editing the registry can cause system instability if done incorrectly. Before proceeding, please read my guide on [How to Backup and Restore the Windows Registry](https://www.johnmcdougal.com/blog/how-to-backup-and-restore-the-windows-registry/) to ensure you can revert your changes if you make a mistake.*
 
 1. Press `Win + R`, type `regedit`, and hit Enter.
 2. Navigate to the following path:
