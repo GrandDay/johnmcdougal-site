@@ -2,6 +2,7 @@
 title: "How The Site Started Validating Itself Before I Can Commit It"
 description: "A quick note on the automation, content linting, and workflow cleanup added to johnmcdougal.com today."
 pubDate: 2026-09-17
+seriesPart: 7
 projectRef: "johnmcdougal-site"
 tags: ["site-build", "automation", "workflow", "documentation", "meta"]
 ---
