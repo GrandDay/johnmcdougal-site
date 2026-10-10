@@ -30,7 +30,7 @@ const expectedSeries = [
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
-const standalonePosts = ['layering-a-proxmox-homelab', 'mermaid-diagrams-in-astro-with-local-bundling', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'site-automation-workflow-updates', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
+const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
 const expectedSourceDates = {
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
@@ -73,7 +73,7 @@ const expectedBaseline = {
 	tagDetailRouteCount: 64,
 	chronologicalPostCount: 21,
 	seriesGroupCount: 2,
-	seriesMemberCount: 12,
+	seriesMemberCount: 14,
 	rssItemCount: 21,
 	graphNodeCount: 91,
 	graphEdgeCount: 162,
@@ -447,6 +447,27 @@ if (countMatches(blogIndex, /data-series-member=/g) !== expectedBaseline.seriesM
 	fail(`Writing index must render exactly ${expectedBaseline.seriesMemberCount} ordered series-member links.`);
 }
 
+const sourceMembersBySeries = new Map();
+const sourceProjectMemberIds = new Set();
+for (const relativePath of Object.keys(expectedSourceDates)) {
+	if (!relativePath.startsWith('blog/')) continue;
+	const source = readFileSync(sourceFilePath(relativePath), 'utf8');
+	const seriesKey = sourceFrontmatterString(source, 'series');
+	if (!seriesKey) continue;
+	const id = contentEntryId(relativePath);
+	const part = Number(sourceFrontmatterString(source, 'seriesPart'));
+	const members = sourceMembersBySeries.get(seriesKey) ?? [];
+	members.push({ id, part });
+	sourceMembersBySeries.set(seriesKey, members);
+	if (sourceFrontmatterString(source, 'projectRef') === 'johnmcdougal-site') sourceProjectMemberIds.add(id);
+}
+const expectedMembersBySeries = new Map(
+	[...sourceMembersBySeries].map(([key, members]) => [
+		key,
+		members.sort((a, b) => a.part - b.part).map((member) => member.id),
+	]),
+);
+
 const membersBySeries = new Map();
 for (const series of expectedSeries) {
 	const groupStart = blogIndex.indexOf(`data-series-group="${series.key}"`);
@@ -458,8 +479,11 @@ for (const series of expectedSeries) {
 	const groupHtml = groupEnd >= 0 ? blogIndex.slice(groupStart, groupEnd) : '';
 	const members = [...groupHtml.matchAll(/data-series-member="([^"]+)"/g)].map((match) => match[1]);
 	membersBySeries.set(series.key, members);
-	if (members.length !== 6 || new Set(members).size !== 6) {
-		fail(`Writing index series "${series.key}" must contain six unique ordered members; found ${members.length}.`);
+	const expectedMembers = expectedMembersBySeries.get(series.key) ?? [];
+	if (members.length === 0 || members.join('|') !== expectedMembers.join('|')) {
+		fail(
+			`Writing index series "${series.key}" members [${members.join(', ')}] do not match source order [${expectedMembers.join(', ')}].`,
+		);
 	}
 	if (!groupHtml.includes(`>${series.label}</h3>`)) {
 		fail(`Writing index is missing public label "${series.label}".`);
@@ -470,7 +494,7 @@ for (const series of expectedSeries) {
 }
 
 const orderedSeriesIds = expectedSeries.flatMap((series) => membersBySeries.get(series.key) ?? []);
-if (new Set(orderedSeriesIds).size !== 12) {
+if (new Set(orderedSeriesIds).size !== orderedSeriesIds.length) {
 	fail('Series organizer contains a duplicate member across series.');
 }
 const standaloneIds = chronologicalIds.filter((id) => !orderedSeriesIds.includes(id));
@@ -540,10 +564,14 @@ if (attributeValue(homelabPostHtml, 'data-related-project') !== 'homelab') {
 }
 
 if (
-	relatedProjectResults.length !== 6 ||
-	relatedProjectResults.some(({ project }) => project !== 'johnmcdougal-site')
+	relatedProjectResults.length !== sourceProjectMemberIds.size ||
+	relatedProjectResults.some(
+		({ id, project }) => project !== 'johnmcdougal-site' || !sourceProjectMemberIds.has(id),
+	)
 ) {
-	fail(`Expected six resolved johnmcdougal-site relationships; found ${JSON.stringify(relatedProjectResults)}.`);
+	fail(
+		`Expected resolved johnmcdougal-site relationships for [${[...sourceProjectMemberIds].join(', ')}]; found ${JSON.stringify(relatedProjectResults)}.`,
+	);
 }
 
 for (const id of chronologicalIds) {
@@ -588,14 +616,23 @@ for (const series of expectedSeries) {
 	if (!llms.includes(`### Series: ${series.key}`)) {
 		fail(`llms.txt is missing series "${series.key}".`);
 	}
-	for (const id of membersBySeries.get(series.key) ?? []) {
+	for (const id of expectedMembersBySeries.get(series.key) ?? []) {
 		if (!llms.includes(`${site}/blog/${id}/`)) {
 			fail(`llms.txt is missing series member "${id}".`);
 		}
 	}
 }
-if (!llms.includes(`${site}/blog/hello-world/`)) {
-	fail('llms.txt is missing standalone post "hello-world".');
+for (const id of standalonePosts) {
+	if (!llms.includes(`${site}/blog/${id}/`)) {
+		fail(`llms.txt is missing standalone post "${id}".`);
+	}
+}
+for (const relativePath of Object.keys(expectedSourceDates)) {
+	if (!relativePath.startsWith('projects/')) continue;
+	const id = contentEntryId(relativePath);
+	if (!llms.includes(`${site}/projects/${id}/`)) {
+		fail(`llms.txt is missing project "${id}".`);
+	}
 }
 
 const graphText = readRequired('graph.json');

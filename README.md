@@ -28,12 +28,11 @@ src/
 │   ├── blog/         # Blog posts (.md / .mdx)
 │   └── projects/     # Project entries (.md / .mdx)
 ├── layouts/          # Page layouts
-├── pages/            # Routes (index, about, blog, projects, tags)
+├── pages/            # Routes (index, about, blog, projects, tags, generated llms.txt)
 └── styles/
     └── global.css    # Entire theme system lives here
 public/
-├── robots.txt        # AI crawler governance
-└── llms.txt          # Machine-readable site inventory for LLMs
+└── robots.txt        # AI crawler governance
 ```
 
 ## Local development

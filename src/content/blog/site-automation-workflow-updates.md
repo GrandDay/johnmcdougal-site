@@ -2,6 +2,7 @@
 title: "How The Site Started Validating Itself Before I Can Commit It"
 description: "A quick note on the automation, content linting, and workflow cleanup added to johnmcdougal.com today."
 pubDate: 2026-09-17
+series: "How I built johnmcdougal.com"
 seriesPart: 7
 projectRef: "johnmcdougal-site"
 tags: ["site-build", "automation", "workflow", "documentation", "meta"]
@@ -23,9 +24,9 @@ The blog template now shows every supported frontmatter field. The common fields
 
 ## Generated versus curated
 
-Most publishing surfaces follow the collections automatically. Adding content generates its detail route, tag pages, raw Markdown endpoint for blog posts, RSS item, sitemap entry, and graph node and edges. A blog post joins a project in the graph when its `projectRef` matches that project’s entry ID.
+Most publishing surfaces follow the collections automatically. Adding content generates its detail route, tag pages, raw Markdown endpoint for blog posts, RSS item, sitemap entry, `llms.txt` entry, and graph node and edges. A blog post joins a project in the graph when its `projectRef` matches that project’s entry ID.
 
-The exception is `public/llms.txt`, which is a curated inventory rather than a live list of every entry. Update it when the public index should feature a new post, project, or series. The project index also has optional editorial priority and evidence text for selected projects; ordinary projects still appear without adding those highlights.
+The project index has optional editorial priority and evidence text for selected projects; ordinary projects still appear without adding those highlights.
 
 ## Why this matters
 
