@@ -17,7 +17,7 @@ document, and use to test infrastructure, services, and ideas.
 The current lab includes Proxmox VE virtualization, Linux VMs and containers,
 TrueNAS Scale and Synology based networked storage, dedicated Docker host VM, layered segmented networking at an
 abstract level, Proxmox Backup Server, and service operation across a mix of
-stable systems, test systemd and active rebuild (physical to virtual migration) work.
+stable systems, test systems and active rebuild (physical to virtual migration) work.
 
 ## Why it exists
 
