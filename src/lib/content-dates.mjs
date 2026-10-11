@@ -1,3 +1,5 @@
+import { getProjectRefs } from './project-refs.mjs';
+
 const UTC_CALENDAR_PARTS = {
 	year: 'numeric',
 	month: 'short',
@@ -45,7 +47,7 @@ export function getLatestRelatedActivity(project, posts) {
 	let latest;
 
 	for (const post of posts) {
-		if (post.data.projectRef !== project.id) continue;
+		if (!getProjectRefs(post).includes(project.id)) continue;
 
 		const date = post.data.updatedDate ?? post.data.pubDate;
 		if (date.valueOf() <= projectDate.valueOf()) continue;

@@ -28,9 +28,11 @@ understand it well enough.
 
 - Astro 7 with MDX and Markdown content, deployed to Cloudflare Pages from the
   repository.
-- Separate Astro content collections for blog posts and projects, with project
-  frontmatter for status, tags, repository links, and live links.
-- Generated routes for `/blog/`, individual blog posts, `/projects/`,
+- Separate Astro content collections for blog posts, projects, and series, with
+  project frontmatter for status, tags, repository links, and live links, and
+  series entries that declare their related projects.
+- Generated routes for `/blog/`, individual blog posts, `/series/`, individual
+  series pages, `/projects/`,
   individual project pages, tag indexes, RSS, sitemap output, and `graph.json`.
 - Raw Markdown endpoints for blog posts at `/blog/[slug].md`; project pages are
   generated as HTML detail routes.
@@ -44,7 +46,7 @@ understand it well enough.
   and wildcard DKIM null records.
 - Published writing across the site-build, email, analytics, and AI-workflow
   series, with the "How I built johnmcdougal.com" series linked back to this
-  project through `projectRef`.
+  project through its series entry.
 
 ## What I implemented
 
@@ -65,9 +67,10 @@ The generated site exposes the public surfaces I expect: HTML pages for posts
 and projects, tag pages, RSS, sitemap output, raw Markdown endpoints for blog
 posts, and `graph.json` for the Graph page.
 
-The graph is intentionally simple today. It emits post, project, and tag nodes;
-tag edges come from frontmatter tags, and project edges come from blog
-`projectRef` fields. Inline Markdown links are for readers, while future graph
+The graph is intentionally simple today. It emits post, project, series, and tag
+nodes; tag edges come from frontmatter tags, project edges come from blog
+`projectRef` fields, and series nodes pull their member posts together and link
+to the projects the series declares. Inline Markdown links are for readers, while future graph
 work can decide whether parsed links or backlinks should become data edges.
 
 ## What I am figuring out

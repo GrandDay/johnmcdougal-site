@@ -2,7 +2,7 @@
 title: "How The Site Started Validating Itself Before I Can Commit It"
 description: "A quick note on the automation, content linting, and workflow cleanup added to johnmcdougal.com today."
 pubDate: 2026-09-17
-series: "How I built johnmcdougal.com"
+series: "how-i-built-johnmcdougal-com"
 seriesPart: 7
 projectRef: "johnmcdougal-site"
 tags: ["site-build", "automation", "workflow", "documentation", "meta"]
@@ -20,7 +20,7 @@ For a new post, the important order is now explicit: create it from the template
 
 That staging step matters: the commit check rejects untracked files so it can validate exactly what is proposed for the commit. In my failed attempt, I pushed before a commit had succeeded, so Git correctly had nothing new to send.
 
-The blog template now shows every supported frontmatter field. The common fields stay active; less-used fields such as `updatedDate`, `heroImage`, `projectRef`, `series`, and `seriesPart` are commented out until needed. Series metadata must be added as a pair, and a new series also needs a definition in `src/lib/series.ts`.
+The blog template now shows every supported frontmatter field. The common fields stay active; less-used fields such as `updatedDate`, `heroImage`, `projectRef`, `series`, and `seriesPart` are commented out until needed. Series metadata must be added as a pair, and a new series also needs its own entry in `src/content/series`.
 
 ## Generated versus curated
 

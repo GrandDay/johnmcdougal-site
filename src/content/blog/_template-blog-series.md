@@ -3,9 +3,9 @@ title: ""
 description: ""
 pubDate: YYYY-MM-DD
 tags: []
-series: ""          # must match exactly across all posts in this series
+series: ""          # series entry ID (filename in src/content/series); create that file first
 seriesPart: 1
-projectRef: ""      # slug of the linked project (e.g. "homelab", "cue-verse")
+projectRef: ""      # project ID(s), e.g. "homelab" or ["homelab", "phred"]; must be listed in the series' projects
 # updatedDate: YYYY-MM-DD
 # heroImage: ""
 ---

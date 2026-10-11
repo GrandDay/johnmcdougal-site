@@ -455,6 +455,11 @@ if (diagrams.length > 0) {
 		max-width: none !important;
 		margin: 0;
 	}
+	/* Page `.prose p` line-height otherwise exceeds the height Mermaid measured, clipping wrapped labels. */
+	.mermaid-diagram .mermaid-output svg foreignObject p,
+	.mermaid-viewer .mermaid-viewer-viewport svg foreignObject p {
+		line-height: inherit;
+	}
 	.mermaid-source {
 		margin-top: 0.5rem;
 		color: var(--text-muted);

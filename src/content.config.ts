@@ -60,7 +60,7 @@ const blog = defineCollection({
       tags: normalizedTags,
       series: z.string().optional(),
       seriesPart: z.number().optional(),
-      projectRef: z.string().optional(),
+      projectRef: z.union([z.string(), z.array(z.string())]).optional(),
     }).superRefine((entry, ctx) => {
       validateDateOrder(entry, ctx);
 
@@ -102,4 +102,16 @@ const projects = defineCollection({
     }).superRefine(validateDateOrder),
 });
 
-export const collections = { blog, projects };
+const series = defineCollection({
+  loader: glob({ base: './src/content/series', pattern: '**/[!_]*.{md,mdx}' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: calendarDate,
+    updatedDate: calendarDate.optional(),
+    status: z.enum(['ongoing', 'complete']).default('ongoing'),
+    projects: z.array(z.string()).default([]),
+  }).superRefine(validateDateOrder),
+});
+
+export const collections = { blog, projects, series };

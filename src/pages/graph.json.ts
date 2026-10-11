@@ -1,12 +1,16 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { assertProjectRefsExist, getProjectRefs } from '../lib/project-refs.mjs';
+import { getSeriesGroups } from '../lib/series';
 
 export const GET: APIRoute = async () => {
   const posts = await getCollection('blog');
   const projects = await getCollection('projects');
+  const seriesGroups = await getSeriesGroups();
+  const projectIds = new Set(projects.map((project) => project.id));
 
-  type Node = { id: string; type: 'post' | 'project' | 'tag'; label: string; url: string };
-  type Edge = { source: string; target: string; type: 'tag' | 'projectRef' };
+  type Node = { id: string; type: 'post' | 'project' | 'tag' | 'series'; label: string; url: string };
+  type Edge = { source: string; target: string; type: 'tag' | 'projectRef' | 'series' | 'seriesProject' };
 
   const nodes: Node[] = [];
   const edges: Edge[] = [];
@@ -30,9 +34,10 @@ export const GET: APIRoute = async () => {
     post.data.tags.forEach((tag: string) => {
       edges.push({ source: post.id, target: `tag:${tag}`, type: 'tag' });
     });
-    if (post.data.projectRef) {
-      edges.push({ source: post.id, target: post.data.projectRef, type: 'projectRef' });
-    }
+    assertProjectRefsExist(post, projectIds);
+    getProjectRefs(post).forEach((ref) => {
+      edges.push({ source: post.id, target: ref, type: 'projectRef' });
+    });
   });
 
   projects.forEach((project) => {
@@ -44,6 +49,22 @@ export const GET: APIRoute = async () => {
     });
     project.data.tags.forEach((tag: string) => {
       edges.push({ source: project.id, target: `tag:${tag}`, type: 'tag' });
+    });
+  });
+
+  seriesGroups.forEach((group) => {
+    const seriesNodeId = `series:${group.key}`;
+    nodes.push({
+      id: seriesNodeId,
+      type: 'series',
+      label: group.entry.data.title,
+      url: `/series/${group.key}/`,
+    });
+    group.members.forEach((member) => {
+      edges.push({ source: member.id, target: seriesNodeId, type: 'series' });
+    });
+    group.projects.forEach((projectId) => {
+      edges.push({ source: seriesNodeId, target: projectId, type: 'seriesProject' });
     });
   });
 

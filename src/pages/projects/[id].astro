@@ -6,6 +6,9 @@ import FormattedDate from "../../components/FormattedDate.astro";
 import Header from "../../components/Header.astro";
 import { SITE_TITLE } from "../../consts";
 import { getLatestRelatedActivity } from "../../lib/content-dates.mjs";
+import { getProjectRefs } from "../../lib/project-refs.mjs";
+import { getSeriesForProject, getSeriesGroups } from "../../lib/series";
+import SeriesCard from "../../components/SeriesCard.astro";
 import { hasMermaidFence } from "../../lib/mermaid-content";
 import MermaidRenderer from "../../components/MermaidRenderer.astro";
 
@@ -24,8 +27,9 @@ const { title, description, pubDate, updatedDate, heroImage, status, repoUrl, li
 const socialImage = heroImage || undefined;
 
 const allPosts = await getCollection('blog');
+const projectSeries = getSeriesForProject(await getSeriesGroups(), project.id);
 const linkedPosts = allPosts
-  .filter((post) => post.data.projectRef === project.id)
+  .filter((post) => getProjectRefs(post).includes(project.id) && post.data.series === undefined)
   .sort((a, b) => {
     const dateDiff = a.data.pubDate.valueOf() - b.data.pubDate.valueOf();
     if (dateDiff !== 0) return dateDiff;
@@ -160,6 +164,11 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-m
         flex-direction: column;
         gap: 0.85em;
       }
+      .series-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+      }
       .linked-post-item a {
         color: var(--text);
         text-decoration: none;
@@ -256,9 +265,19 @@ const statusColor = { active: "#22c55e", wip: "#f59e0b", archived: "var(--text-m
             <Content />
           )}
         </div>
+        {projectSeries.length > 0 && (
+          <section class="linked-posts" data-project-series>
+            <p class="linked-posts-heading">Series about this project</p>
+            <div class="series-stack">
+              {projectSeries.map((group) => (
+                <SeriesCard group={group} showProjects excludeProject={project.id} />
+              ))}
+            </div>
+          </section>
+        )}
         {linkedPosts.length > 0 && (
           <section class="linked-posts">
-            <p class="linked-posts-heading">Posts about this project</p>
+            <p class="linked-posts-heading">{projectSeries.length > 0 ? 'Other posts about this project' : 'Posts about this project'}</p>
             <ul class="linked-posts-list">
               {linkedPosts.map((post) => (
                 <li class="linked-post-item">

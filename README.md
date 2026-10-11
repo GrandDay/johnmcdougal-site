@@ -26,9 +26,10 @@ src/
 ├── components/       # Header, Footer, BaseHead, etc.
 ├── content/
 │   ├── blog/         # Blog posts (.md / .mdx)
-│   └── projects/     # Project entries (.md / .mdx)
+│   ├── projects/     # Project entries (.md / .mdx)
+│   └── series/       # Series entries (frontmatter-only .md); posts join by `series` ID
 ├── layouts/          # Page layouts
-├── pages/            # Routes (index, about, blog, projects, tags, generated llms.txt)
+├── pages/            # Routes (index, about, blog, series, projects, tags, generated llms.txt)
 └── styles/
     └── global.css    # Entire theme system lives here
 public/
@@ -69,7 +70,7 @@ The review server binds to `127.0.0.1` by default and writes ignored state/logs 
 ### Standalone blog post
 
 1. Copy `src/content/blog/_template-blog.md` to `src/content/blog/<lowercase-kebab-case-slug>.md`. The filename determines the URL; `title` is only the displayed heading. Uppercase and spaces are normalized for route checks, but use a stable lowercase filename with letters, numbers, and hyphens.
-2. Fill in `title`, `description`, `pubDate` (`YYYY-MM-DD`), and `tags`. The template includes every blog frontmatter field: uncomment optional `updatedDate`, `heroImage`, and `projectRef` as needed. For a series post, uncomment both `series` and `seriesPart`.
+2. Fill in `title`, `description`, `pubDate` (`YYYY-MM-DD`), and `tags`. The template includes every blog frontmatter field: uncomment optional `updatedDate`, `heroImage`, and `projectRef` as needed. For a series post, uncomment both `series` and `seriesPart`; `series` is the filename (ID) of an entry in `src/content/series`.
 3. Run `npm run check` to validate content and types. Use `npm run review` if you want a validated local preview.
 4. Stage the new post and any other intended content edits: `git add -- src/content/blog/<your-slug>.md`.
 5. Run `npm run verify-build:sync-baseline`. It rebuilds the site, updates the generated-output expectations in `scripts/verify-build.mjs`, and stages that file automatically. You do not need to edit baseline counts or hashes by hand. The pre-commit hook repeats this step automatically.
@@ -77,6 +78,10 @@ The review server binds to `127.0.0.1` by default and writes ignored state/logs 
 7. Commit after the check passes. The pre-commit hook syncs the baseline, fixes staged trailing whitespace, and runs the commit check again. Push only after the commit succeeds.
 
 For projects, copy `src/content/projects/_template-project.md`; set `updatedDate` only when intentionally updating project state. Run the same check, staging, baseline-sync, and commit steps above.
+
+### Series
+
+Copy `src/content/series/_template-series.md` to `src/content/series/<slug>.md`; the filename is the series ID. Set `title`, `description`, `pubDate`, and optionally `projects` (project IDs; the first is primary). Then give each member post `series: "<slug>"` and a contiguous `seriesPart` starting at 1. A post's `projectRef` (string or list) must be one of the series' `projects`. The series appears automatically on `/series`, the blog index strip, its project pages, `llms.txt`, and the graph. Run the same check, baseline-sync, and commit steps above.
 
 ### Mermaid diagrams
 

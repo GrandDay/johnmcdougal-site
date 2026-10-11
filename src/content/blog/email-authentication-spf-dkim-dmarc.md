@@ -3,7 +3,7 @@ title: "SPF, DKIM, and DMARC: the full lockdown after setting up custom email"
 description: "SMTP2Go's wizard gives you SPF. That's one of three records. Here's how to add DKIM and DMARC -- in the right order -- and why the order matters."
 pubDate: 2026-05-04
 tags: ["email", "cloudflare", "smtp2go", "dmarc", "security", "homelab"]
-series: "How I built johnmcdougal.com"
+series: "how-i-built-johnmcdougal-com"
 seriesPart: 4
 projectRef: "johnmcdougal-site"
 ---

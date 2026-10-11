@@ -13,7 +13,7 @@ const pageDescription =
 const posts = (await getCollection('blog')).sort(
 	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
 );
-const seriesGroups = getSeriesGroups(posts);
+const seriesGroups = await getSeriesGroups();
 
 const tagMap = new Map<string, number>();
 posts.forEach((post) => {
@@ -47,30 +47,19 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 				<p style="color: var(--text-muted)">Nothing published yet — something is always in the draft pile. Check back soon.</p>
 			)}
 
-			<section class="series-organizer" aria-labelledby="series-heading" data-series-organizer>
-				<div class="section-heading">
+			<section class="series-strip" aria-labelledby="series-heading" data-series-strip>
+				<div class="series-strip-heading">
 					<h2 id="series-heading">Series</h2>
-					<p>Follow each collection in order, or continue to the complete chronological index.</p>
+					<a href="/series">All series &rarr;</a>
 				</div>
-				<div class="series-list">
-					{seriesGroups.map(({ key, definition, members }) => (
-						<article class="series-entry" data-series-group={key}>
-							<div class="series-entry-heading">
-								<h3>{definition.label}</h3>
-								<span>{members.length} posts</span>
-							</div>
-							<p>{definition.description}</p>
-							<ol>
-								{members.map((post) => (
-									<li data-series-member={post.id}>
-										<span>Part {post.data.seriesPart}</span>
-										<a href={`/blog/${post.id}/`}>{post.data.title}</a>
-									</li>
-								))}
-							</ol>
-						</article>
+				<ul>
+					{seriesGroups.map(({ key, entry, members }) => (
+						<li data-series-group={key}>
+							<a href={`/series/${key}/`}>{entry.data.title}</a>
+							<span>{members.length} {members.length === 1 ? 'post' : 'posts'}</span>
+						</li>
 					))}
-				</div>
+				</ul>
 			</section>
 
 			<section aria-labelledby="all-writing-heading" data-chronological-index>
@@ -138,80 +127,57 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 		color: var(--text-muted);
 		font-size: 0.95em;
 	}
-	.series-organizer {
-		margin-bottom: 3em;
-	}
-	.series-list {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		border-top: 1px solid var(--border);
+	.series-strip {
+		margin-bottom: 2.5em;
+		padding-bottom: 1.25em;
 		border-bottom: 1px solid var(--border);
 	}
-	.series-entry {
-		padding: 1.25em 1.5em 1.5em 0;
-		min-width: 0;
-	}
-	.series-entry + .series-entry {
-		padding-left: 1.5em;
-		padding-right: 0;
-		border-left: 1px solid var(--border);
-	}
-	.series-entry-heading {
+	.series-strip-heading {
 		display: flex;
 		align-items: baseline;
 		justify-content: space-between;
 		gap: 1em;
-		margin-bottom: 0.45em;
+		margin-bottom: 0.5em;
 	}
-	.series-entry-heading h3 {
-		font-size: 1.05em;
+	.series-strip-heading h2 {
+		font-size: 1.35em;
 		margin: 0;
 	}
-	.series-entry-heading span {
-		flex: 0 0 auto;
-		font-size: 0.75em;
-		color: var(--text-muted);
+	.series-strip-heading a {
+		font-size: 0.85em;
 	}
-	.series-entry > p {
-		margin: 0 0 1em;
-		color: var(--text-muted);
-		font-size: 0.9em;
-		line-height: 1.55;
-	}
-	.series-entry ol {
+	.series-strip ul {
 		list-style: none;
 		padding: 0;
 		margin: 0;
 	}
-	.series-entry li {
-		display: grid;
-		grid-template-columns: 3.6em minmax(0, 1fr);
-		gap: 0.75em;
+	.series-strip li {
+		display: flex;
 		align-items: center;
+		justify-content: space-between;
+		gap: 1em;
 		min-height: 44px;
 		border-bottom: 1px solid rgba(128,128,128,0.1);
 	}
-	.series-entry li:last-child {
+	.series-strip li:last-child {
 		border-bottom: 0;
 	}
-	.series-entry li > span {
-		font-size: 0.72em;
-		font-weight: 700;
-		color: var(--text-muted);
-		text-transform: uppercase;
-	}
-	.series-entry a {
+	.series-strip li a {
 		display: flex;
 		align-items: center;
 		min-height: 44px;
 		color: var(--text);
-		font-size: 0.9em;
-		line-height: 1.35;
+		font-weight: 600;
 	}
-	.series-entry a:hover,
-	.series-entry a:focus-visible {
+	.series-strip li a:hover,
+	.series-strip li a:focus-visible {
 		color: var(--accent);
 		text-decoration: underline;
+	}
+	.series-strip li span {
+		flex: 0 0 auto;
+		font-size: 0.8em;
+		color: var(--text-muted);
 	}
 	.all-writing-heading {
 		margin-bottom: 1em;
@@ -280,29 +246,7 @@ const allTags = [...tagMap.entries()].sort((a, b) => b[1] - a[1] || a[0].localeC
 		border-radius: 999px;
 		border: 1px solid var(--border);
 	}
-	@media (max-width: 640px) {
-		.series-list {
-			display: block;
-		}
-		.series-entry,
-		.series-entry + .series-entry {
-			padding: 1.1em 0 1.25em;
-			border-left: 0;
-		}
-		.series-entry + .series-entry {
-			border-top: 1px solid var(--border);
-		}
-	}
 	@media (max-width: 420px) {
-		.series-entry-heading {
-			align-items: flex-start;
-			flex-direction: column;
-			gap: 0.2em;
-		}
-		.series-entry li {
-			grid-template-columns: 3.25em minmax(0, 1fr);
-			gap: 0.55em;
-		}
 		.post-card {
 			padding: 1em;
 		}

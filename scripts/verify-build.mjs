@@ -10,6 +10,15 @@ import {
 	isValidDateOrder,
 	rawMarkdownDateLines,
 } from '../src/lib/content-dates.mjs';
+import { getProjectRefs } from '../src/lib/project-refs.mjs';
+import {
+	DEFAULT_LAYOUT,
+	LAYOUT_STORAGE_KEY,
+	loadLayout,
+	resolveForces,
+	sanitizeLayout,
+	saveLayout,
+} from '../src/lib/graph-config.mjs';
 
 const root = process.cwd();
 const dist = path.resolve(root, process.env.VERIFY_BUILD_DIST ?? 'dist');
@@ -19,14 +28,16 @@ const lintWarnings = [];
 const strictTagLint = process.env.VERIFY_BUILD_STRICT_TAG_LINT === '1';
 const expectedSeries = [
 	{
-		key: 'How I built johnmcdougal.com',
+		key: 'how-i-built-johnmcdougal-com',
 		label: 'How I Built johnmcdougal.com',
 		description: 'How this Astro site, its analytics, and its custom-domain email infrastructure were built and hardened.',
+		projects: ['johnmcdougal-site'],
 	},
 	{
-		key: 'Working with AI in 2026',
+		key: 'working-with-ai-in-2026',
 		label: 'Working with AI in 2026',
 		description: 'A practical series on context, iteration, prompts, reusable workflows, and human judgment in AI-assisted work.',
+		projects: [],
 	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
@@ -69,16 +80,16 @@ const expectedProjectUpdatedDates = {
 	'projects/userspace.md': '2026-07-16',
 };
 const expectedBaseline = {
-	sitemapRouteCount: 97,
+	sitemapRouteCount: 100,
 	tagDetailRouteCount: 64,
 	chronologicalPostCount: 21,
 	seriesGroupCount: 2,
 	seriesMemberCount: 14,
 	rssItemCount: 21,
-	graphNodeCount: 91,
-	graphEdgeCount: 162,
-	graphNodeHash: '6372b9996408b6cef2ef2bdbba13bc0c92e297c5f8f529c8a3bdd7ffadaef6b9',
-	graphEdgeHash: '40e022794ab1c732e718c549002c84d3765319cd7644f6b3fd0b4c14db0f30d9',
+	graphNodeCount: 93,
+	graphEdgeCount: 177,
+	graphNodeHash: '1ae857f2578f45e20c267e0a6b62b33f77a7fddde8afa398c561a85dcc18dfa8',
+	graphEdgeHash: 'f850dab3d569f5732241af8d51309cd7bdb81d0cd0ed1394a4fdc38e4c3ff89f',
 };
 
 function fail(message) {
@@ -141,6 +152,13 @@ function sourceFrontmatterArray(source, key) {
 		.split(',')
 		.map((value) => value.trim().replace(/^['"]|['"]$/g, ''))
 		.filter(Boolean);
+}
+
+function sourceProjectRefs(source) {
+	const list = sourceFrontmatterArray(source, 'projectRef');
+	if (list.length > 0) return list;
+	const single = sourceFrontmatterString(source, 'projectRef');
+	return single ? [single] : [];
 }
 
 function normalizeTag(value) {
@@ -214,23 +232,25 @@ const latestRelatedByProject = new Map();
 for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 	if (!relativePath.startsWith('blog/')) continue;
 	const source = readFileSync(sourceFilePath(relativePath), 'utf8');
-	const projectRef = sourceFrontmatterString(source, 'projectRef');
-	if (!projectRef) continue;
+	const projectRefs = sourceProjectRefs(source);
+	if (projectRefs.length === 0) continue;
 
 	const entry = {
 		id: contentEntryId(relativePath),
 		date: new Date(`${sourceDate}T00:00:00.000Z`),
 	};
-	const projectBaselineDate = projectBaselineDateById.get(projectRef);
-	if (projectBaselineDate && entry.date.valueOf() <= projectBaselineDate.valueOf()) continue;
+	for (const projectRef of projectRefs) {
+		const projectBaselineDate = projectBaselineDateById.get(projectRef);
+		if (projectBaselineDate && entry.date.valueOf() <= projectBaselineDate.valueOf()) continue;
 
-	const current = latestRelatedByProject.get(projectRef);
-	if (
-		!current ||
-		entry.date.getTime() > current.date.getTime() ||
-		(entry.date.getTime() === current.date.getTime() && entry.id.localeCompare(current.id) > 0)
-	) {
-		latestRelatedByProject.set(projectRef, entry);
+		const current = latestRelatedByProject.get(projectRef);
+		if (
+			!current ||
+			entry.date.getTime() > current.date.getTime() ||
+			(entry.date.getTime() === current.date.getTime() && entry.id.localeCompare(current.id) > 0)
+		) {
+			latestRelatedByProject.set(projectRef, entry);
+		}
 	}
 }
 
@@ -287,6 +307,55 @@ if (getLatestRelatedActivity(fixtureProject, [olderFixturePost]) !== undefined) 
 if (getLatestRelatedActivity(fixtureProject, [olderFixturePost, newerFixturePost])?.post.id !== 'newer-post') {
 	fail('Related-activity fixture did not expose the newer related post.');
 }
+const multiProjectFixturePost = {
+	id: 'multi-post',
+	data: { projectRef: ['other-project', 'fixture-project'], pubDate: new Date('2026-08-01T00:00:00.000Z') },
+};
+if (getLatestRelatedActivity(fixtureProject, [multiProjectFixturePost])?.post.id !== 'multi-post') {
+	fail('Related-activity fixture ignored a post with a list of project refs.');
+}
+if (
+	getProjectRefs({ data: { projectRef: 'a' } }).join() !== 'a' ||
+	getProjectRefs({ data: { projectRef: ['a', 'b', 'a'] } }).join() !== 'a,b' ||
+	getProjectRefs({ data: {} }).length !== 0
+) {
+	fail('Project-ref helper fixture did not normalize string, list, and missing refs.');
+}
+
+const clampedLayout = sanitizeLayout({ series: 99, project: 'x', tag: -5, bogus: 1 });
+if (
+	clampedLayout.series !== 2 ||
+	clampedLayout.project !== DEFAULT_LAYOUT.project ||
+	clampedLayout.tag !== 0.25 ||
+	'bogus' in clampedLayout
+) {
+	fail('Graph layout fixture did not clamp, default, and drop unknown values.');
+}
+const fixtureStore = new Map();
+const fixtureStorage = {
+	getItem: (key) => fixtureStore.get(key) ?? null,
+	setItem: (key, value) => fixtureStore.set(key, value),
+	removeItem: (key) => fixtureStore.delete(key),
+};
+saveLayout(fixtureStorage, { ...DEFAULT_LAYOUT, series: 1.5 });
+if (loadLayout(fixtureStorage).series !== 1.5) {
+	fail('Graph layout fixture did not persist a changed layout.');
+}
+saveLayout(fixtureStorage, DEFAULT_LAYOUT);
+if (fixtureStore.has(LAYOUT_STORAGE_KEY)) {
+	fail('Graph layout fixture stored a default layout.');
+}
+fixtureStore.set(LAYOUT_STORAGE_KEY, '{not json');
+if (JSON.stringify(loadLayout(fixtureStorage)) !== JSON.stringify(DEFAULT_LAYOUT)) {
+	fail('Graph layout fixture did not fall back to defaults for corrupt storage.');
+}
+if (JSON.stringify(loadLayout({ getItem() { throw new Error('blocked'); } })) !== JSON.stringify(DEFAULT_LAYOUT)) {
+	fail('Graph layout fixture did not fall back to defaults when storage is unavailable.');
+}
+const maxPull = resolveForces({ ...DEFAULT_LAYOUT, series: 2 });
+if (maxPull.linkStrength('series') > 1 || maxPull.linkDistance('series') >= resolveForces().linkDistance('series')) {
+	fail('Graph force fixture did not keep strength bounded while shortening distance at higher pull.');
+}
 
 function routeFile(route) {
 	const trimmed = route.replace(/^\/|\/$/g, '');
@@ -340,6 +409,7 @@ const routes = [
 	'/',
 	'/about/',
 	'/blog/',
+	'/series/',
 	'/projects/',
 	'/projects/homelab/',
 	'/projects/phred/',
@@ -441,10 +511,18 @@ for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 }
 
 if (countMatches(blogIndex, /data-series-group=/g) !== expectedBaseline.seriesGroupCount) {
-	fail(`Writing index must render exactly ${expectedBaseline.seriesGroupCount} series groups.`);
+	fail(`Writing index must render exactly ${expectedBaseline.seriesGroupCount} series strip entries.`);
 }
-if (countMatches(blogIndex, /data-series-member=/g) !== expectedBaseline.seriesMemberCount) {
-	fail(`Writing index must render exactly ${expectedBaseline.seriesMemberCount} ordered series-member links.`);
+if (/data-series-member=/.test(blogIndex)) {
+	fail('Writing index must link to series pages instead of rendering series member lists.');
+}
+
+const seriesIndex = readRequired('series/index.html');
+if (countMatches(seriesIndex, /data-series-group=/g) !== expectedBaseline.seriesGroupCount) {
+	fail(`Series index must render exactly ${expectedBaseline.seriesGroupCount} series groups.`);
+}
+if (countMatches(seriesIndex, /data-series-member=/g) !== expectedBaseline.seriesMemberCount) {
+	fail(`Series index must render exactly ${expectedBaseline.seriesMemberCount} ordered series-member links.`);
 }
 
 const sourceMembersBySeries = new Map();
@@ -459,7 +537,7 @@ for (const relativePath of Object.keys(expectedSourceDates)) {
 	const members = sourceMembersBySeries.get(seriesKey) ?? [];
 	members.push({ id, part });
 	sourceMembersBySeries.set(seriesKey, members);
-	if (sourceFrontmatterString(source, 'projectRef') === 'johnmcdougal-site') sourceProjectMemberIds.add(id);
+	if (sourceProjectRefs(source).includes('johnmcdougal-site')) sourceProjectMemberIds.add(id);
 }
 const expectedMembersBySeries = new Map(
 	[...sourceMembersBySeries].map(([key, members]) => [
@@ -469,27 +547,69 @@ const expectedMembersBySeries = new Map(
 );
 
 const membersBySeries = new Map();
+const projectIdsWithSeries = new Set(expectedSeries.flatMap((series) => series.projects));
 for (const series of expectedSeries) {
-	const groupStart = blogIndex.indexOf(`data-series-group="${series.key}"`);
+	const stripStart = blogIndex.indexOf(`data-series-group="${series.key}"`);
+	if (stripStart < 0 || !blogIndex.includes(`href="/series/${series.key}/"`)) {
+		fail(`Writing index is missing the series strip link for "${series.key}".`);
+	}
+
+	const groupStart = seriesIndex.indexOf(`data-series-group="${series.key}"`);
 	if (groupStart < 0) {
-		fail(`Writing index is missing series group "${series.key}".`);
+		fail(`Series index is missing series group "${series.key}".`);
 		continue;
 	}
-	const groupEnd = blogIndex.indexOf('</article>', groupStart);
-	const groupHtml = groupEnd >= 0 ? blogIndex.slice(groupStart, groupEnd) : '';
+	const groupEnd = seriesIndex.indexOf('</article>', groupStart);
+	const groupHtml = groupEnd >= 0 ? seriesIndex.slice(groupStart, groupEnd) : '';
 	const members = [...groupHtml.matchAll(/data-series-member="([^"]+)"/g)].map((match) => match[1]);
 	membersBySeries.set(series.key, members);
 	const expectedMembers = expectedMembersBySeries.get(series.key) ?? [];
 	if (members.length === 0 || members.join('|') !== expectedMembers.join('|')) {
 		fail(
-			`Writing index series "${series.key}" members [${members.join(', ')}] do not match source order [${expectedMembers.join(', ')}].`,
+			`Series index "${series.key}" members [${members.join(', ')}] do not match source order [${expectedMembers.join(', ')}].`,
 		);
 	}
-	if (!groupHtml.includes(`>${series.label}</h3>`)) {
-		fail(`Writing index is missing public label "${series.label}".`);
+	if (!groupHtml.includes(`>${series.label}</a>`)) {
+		fail(`Series index is missing public label "${series.label}".`);
 	}
-	if (!blogIndex.includes(series.description)) {
-		fail(`Writing index is missing the description for series "${series.key}".`);
+	if (!seriesIndex.includes(series.description)) {
+		fail(`Series index is missing the description for series "${series.key}".`);
+	}
+
+	const detailRoute = `/series/${series.key}/`;
+	assertRoute(detailRoute);
+	if (!sitemapLocs.includes(expectedCanonical(detailRoute))) {
+		fail(`Sitemap missing series route: ${expectedCanonical(detailRoute)}`);
+	}
+	const detailHtml = readRequired(routeFile(detailRoute));
+	const detailMembers = [...detailHtml.matchAll(/data-series-member="([^"]+)"/g)].map((match) => match[1]);
+	if (detailMembers.join('|') !== expectedMembers.join('|')) {
+		fail(`Series page "${series.key}" members [${detailMembers.join(', ')}] do not match source order [${expectedMembers.join(', ')}].`);
+	}
+	if (!detailHtml.includes(series.description)) {
+		fail(`Series page "${series.key}" is missing its description.`);
+	}
+	if (series.projects.length > 0 !== detailHtml.includes('data-series-projects')) {
+		fail(`Series page "${series.key}" project links do not match its declared projects.`);
+	}
+
+	for (const projectId of series.projects) {
+		if (!detailHtml.includes(`href="/projects/${projectId}/"`)) {
+			fail(`Series page "${series.key}" is missing a link to project "${projectId}".`);
+		}
+		const projectHtml = readRequired(`projects/${projectId}/index.html`);
+		if (!projectHtml.includes(`data-series-group="${series.key}"`)) {
+			fail(`Project "${projectId}" is missing series "${series.key}".`);
+		}
+	}
+}
+
+for (const relativePath of Object.keys(expectedSourceDates)) {
+	if (!relativePath.startsWith('projects/')) continue;
+	const id = contentEntryId(relativePath);
+	if (projectIdsWithSeries.has(id)) continue;
+	if (readRequired(`projects/${id}/index.html`).includes('data-project-series')) {
+		fail(`Project "${id}" renders a series section without a declaring series.`);
 	}
 }
 
@@ -613,8 +733,11 @@ if (rssDates.some(Number.isNaN)) {
 
 const llms = readRequired('llms.txt');
 for (const series of expectedSeries) {
-	if (!llms.includes(`### Series: ${series.key}`)) {
-		fail(`llms.txt is missing series "${series.key}".`);
+	if (!llms.includes(`### Series: ${series.label}`)) {
+		fail(`llms.txt is missing series "${series.label}".`);
+	}
+	if (!llms.includes(`${site}/series/${series.key}/`)) {
+		fail(`llms.txt is missing the series page for "${series.key}".`);
 	}
 	for (const id of expectedMembersBySeries.get(series.key) ?? []) {
 		if (!llms.includes(`${site}/blog/${id}/`)) {
@@ -633,6 +756,11 @@ for (const relativePath of Object.keys(expectedSourceDates)) {
 	if (!llms.includes(`${site}/projects/${id}/`)) {
 		fail(`llms.txt is missing project "${id}".`);
 	}
+}
+
+const graphPageHtml = readRequired('graph/index.html');
+if (countMatches(graphPageHtml, /data-layout-key=/g) !== Object.keys(DEFAULT_LAYOUT).length || !graphPageHtml.includes('id="layout-reset"')) {
+	fail('Graph page is missing its layout controls or reset button.');
 }
 
 const graphText = readRequired('graph.json');

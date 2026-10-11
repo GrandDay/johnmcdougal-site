@@ -10,7 +10,7 @@ const verifyBuildPath = path.join(repoRoot, 'scripts', 'verify-build.mjs');
 const distDir = path.join(repoRoot, 'dist');
 const blogDir = path.join(repoRoot, 'src', 'content', 'blog');
 const projectDir = path.join(repoRoot, 'src', 'content', 'projects');
-const seriesPath = path.join(repoRoot, 'src', 'lib', 'series.ts');
+const seriesDir = path.join(repoRoot, 'src', 'content', 'series');
 const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 function run(command, args, { cwd = repoRoot, allowFailure = false } = {}) {
@@ -78,8 +78,11 @@ function parseFrontmatter(filePath) {
 		if (!kv) continue;
 		const key = kv[1];
 		let value = kv[2];
-		if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
-			value = value.slice(1, -1);
+		const quoted = value.match(/^(["'])(.*?)\1(?:\s+#.*)?$/);
+		if (quoted) {
+			value = quoted[2];
+		} else {
+			value = value.replace(/\s+#.*$/, '');
 		}
 		data[key] = value;
 	}
@@ -122,6 +125,7 @@ function formatSeries(series) {
 		lines.push(`\t\tkey: '${item.key}',`);
 		lines.push(`\t\tlabel: '${item.label}',`);
 		lines.push(`\t\tdescription: '${item.description}',`);
+		lines.push(`\t\tprojects: ${formatArray(item.projects)},`);
 		lines.push('\t},');
 	}
 	lines.push(']');
@@ -145,16 +149,30 @@ function formatObject(map) {
 }
 
 function parseSeriesDefinitions() {
-	const source = readFileSync(seriesPath, 'utf8');
-	const regex = /'([^']+)'\s*:\s*\{\s*label:\s*'([^']+)',\s*description:\s*'([^']+)'/g;
-	const values = [];
-	for (const match of source.matchAll(regex)) {
-		values.push({ key: match[1], label: match[2], description: match[3] });
-	}
+	const files = listContentFiles(seriesDir, 'series').sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+	const values = files.map((file) => {
+		const frontmatter = parseFrontmatter(file.absolutePath);
+		if (!frontmatter.title || !frontmatter.description) {
+			throw new Error(`Series entry ${file.relativePath} needs a title and description.`);
+		}
+		const projects = (frontmatter.projects ?? '')
+			.replace(/^\[|\]$/g, '')
+			.split(',')
+			.map((value) => value.trim().replace(/^['"]|['"]$/g, ''))
+			.filter(Boolean);
+		return {
+			key: file.slug,
+			label: frontmatter.title,
+			description: frontmatter.description,
+			projects,
+			pubDate: parseDate(frontmatter.pubDate, `${file.relativePath} pubDate`),
+		};
+	});
 	if (values.length === 0) {
-		throw new Error('Could not parse SERIES_DEFINITIONS from src/lib/series.ts.');
+		throw new Error('No series entries found in src/content/series.');
 	}
-	return values;
+	return values
+		.sort((a, b) => (a.pubDate === b.pubDate ? a.key.localeCompare(b.key) : a.pubDate < b.pubDate ? -1 : 1));
 }
 
 function replaceBlock(source, pattern, replacement, label) {
@@ -217,8 +235,9 @@ function main() {
 
 	const blogIndex = readFileSync(path.join(distDir, 'blog', 'index.html'), 'utf8');
 	const chronologicalPostCount = [...blogIndex.matchAll(/data-chronological-post="([^"]+)"/g)].length;
-	const seriesGroupCount = [...blogIndex.matchAll(/data-series-group=/g)].length;
-	const seriesMemberCount = [...blogIndex.matchAll(/data-series-member=/g)].length;
+	const seriesIndex = readFileSync(path.join(distDir, 'series', 'index.html'), 'utf8');
+	const seriesGroupCount = [...seriesIndex.matchAll(/data-series-group=/g)].length;
+	const seriesMemberCount = [...seriesIndex.matchAll(/data-series-member=/g)].length;
 
 	const rss = readFileSync(path.join(distDir, 'rss.xml'), 'utf8');
 	const rssItemCount = [...rss.matchAll(/<item>([\s\S]*?)<\/item>/g)].length;

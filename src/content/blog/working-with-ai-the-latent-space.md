@@ -2,7 +2,7 @@
 title: "The Latent Space: The mental model that changed how I work with AI"
 description: "Most AI failures aren't the model's fault. They're navigation errors -- reaching into the latent space without knowing what you're doing."
 pubDate: 2026-05-04
-series: "Working with AI in 2026"
+series: "working-with-ai-in-2026"
 seriesPart: 1
 tags: ["ai", "workflow", "mental-model", "productivity", "knowledge-work"]
 ---

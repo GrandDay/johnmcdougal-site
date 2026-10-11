@@ -2,7 +2,7 @@
 title: "How I read DMARC reports without reading DMARC reports"
 description: "DMARC aggregate reports are XML zip files emailed by mail servers worldwide. Postmark DMARC Digests parses them and sends you a clean weekly summary -- free, no Postmark account required."
 pubDate: 2026-05-04
-series: "How I built johnmcdougal.com"
+series: "how-i-built-johnmcdougal-com"
 seriesPart: 6
 projectRef: "johnmcdougal-site"
 tags: ["email", "dmarc", "postmark", "security", "monitoring", "homelab"]

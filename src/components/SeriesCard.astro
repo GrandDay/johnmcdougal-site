@@ -1,0 +1,152 @@
+---
+import { getCollection } from 'astro:content';
+import type { SeriesGroup } from '../lib/series';
+
+interface Props {
+	group: SeriesGroup;
+	/** Hide the description (used where space is tight). */
+	compact?: boolean;
+	/** List the related projects under the description. */
+	showProjects?: boolean;
+	/** Project page context: other projects are shown, this one is not repeated. */
+	excludeProject?: string;
+	headingLevel?: 2 | 3;
+}
+
+const { group, compact = false, showProjects = false, excludeProject, headingLevel = 3 } = Astro.props;
+const Heading = `h${headingLevel}` as 'h2' | 'h3';
+const { entry, members, key } = group;
+
+const projectTitles = showProjects
+	? new Map((await getCollection('projects')).map((project) => [project.id, project.data.title]))
+	: new Map<string, string>();
+const shownProjects = showProjects
+	? group.projects.filter((id) => id !== excludeProject)
+	: [];
+---
+
+<article class="series-card" data-series-group={key}>
+	<div class="series-card-heading">
+		<Heading><a href={`/series/${key}/`}>{entry.data.title}</a></Heading>
+		<span>{members.length} {members.length === 1 ? 'post' : 'posts'}</span>
+	</div>
+	{!compact && <p class="series-card-desc">{entry.data.description}</p>}
+	{shownProjects.length > 0 && (
+		<p class="series-card-projects" data-series-projects>
+			{excludeProject ? 'Also covers' : 'Projects'}:
+			{shownProjects.map((id, index) => (
+				<>
+					{index > 0 && ', '}
+					<a href={`/projects/${id}/`}>{projectTitles.get(id) ?? id}</a>
+				</>
+			))}
+		</p>
+	)}
+	<ol>
+		{members.map((post) => (
+			<li data-series-member={post.id}>
+				<span>Part {post.data.seriesPart}</span>
+				<a href={`/blog/${post.id}/`}>{post.data.title}</a>
+			</li>
+		))}
+	</ol>
+</article>
+
+<style>
+	.series-card {
+		padding: 1.25em 1.5em 1.4em;
+		min-width: 0;
+		background: var(--bg-secondary);
+		border: 1px solid var(--border);
+		border-radius: 8px;
+	}
+	.series-card-heading {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1em;
+		margin-bottom: 0.45em;
+	}
+	.series-card-heading :global(h2),
+	.series-card-heading :global(h3) {
+		font-size: 1.05em;
+		margin: 0;
+	}
+	.series-card-heading :global(h2) a,
+	.series-card-heading :global(h3) a {
+		color: var(--text);
+		text-decoration: none;
+	}
+	.series-card-heading :global(h2) a:hover,
+	.series-card-heading :global(h3) a:hover,
+	.series-card-heading :global(h2) a:focus-visible,
+	.series-card-heading :global(h3) a:focus-visible {
+		color: var(--accent);
+		text-decoration: underline;
+	}
+	.series-card-heading > span {
+		flex: 0 0 auto;
+		font-size: 0.75em;
+		color: var(--text-muted);
+	}
+	.series-card-desc {
+		margin: 0 0 1em;
+		color: var(--text-muted);
+		font-size: 0.9em;
+		line-height: 1.55;
+	}
+	.series-card-projects {
+		margin: 0 0 1em;
+		font-size: 0.8em;
+		color: var(--text-muted);
+	}
+	ol {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	li {
+		display: grid;
+		grid-template-columns: 3.6em minmax(0, 1fr);
+		gap: 0.75em;
+		align-items: center;
+		min-height: 44px;
+		border-bottom: 1px solid rgba(128,128,128,0.1);
+	}
+	li:last-child {
+		border-bottom: 0;
+	}
+	li > span {
+		font-size: 0.72em;
+		font-weight: 700;
+		color: var(--text-muted);
+		text-transform: uppercase;
+	}
+	li a {
+		display: flex;
+		align-items: center;
+		min-height: 44px;
+		color: var(--text);
+		font-size: 0.9em;
+		line-height: 1.35;
+	}
+	li a:hover,
+	li a:focus-visible {
+		color: var(--accent);
+		text-decoration: underline;
+	}
+	@media (max-width: 420px) {
+		.series-card {
+			padding: 1em;
+		}
+		.series-card-heading {
+			align-items: flex-start;
+			flex-direction: column;
+			gap: 0.2em;
+		}
+		li {
+			grid-template-columns: 3.25em minmax(0, 1fr);
+			gap: 0.55em;
+		}
+	}
+</style>

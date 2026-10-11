@@ -3,7 +3,7 @@ title: "Custom Email Routing with Cloudflare and SMTP2Go"
 description: "Custom domain email without Google Workspace: Cloudflare handles inbound for free, SMTP2Go handles outbound, and Gmail ties it together."
 pubDate: 2026-05-03
 tags: ["cloudflare", "email", "smtp2go", "homelab", "self-hosted"]
-series: "How I built johnmcdougal.com"
+series: "how-i-built-johnmcdougal-com"
 seriesPart: 2
 projectRef: "johnmcdougal-site"
 ---

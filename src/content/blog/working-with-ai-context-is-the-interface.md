@@ -3,7 +3,7 @@ title: "Context is the Interface"
 description: "The context window isn't a log of your conversation -- it's the environment you're working in. How you build it, manage it, and know when to reset it is a learnable skill."
 pubDate: 2026-05-04
 heroImage: ""
-series: "Working with AI in 2026"
+series: "working-with-ai-in-2026"
 seriesPart: 2
 tags: ["ai", "workflow", "context-window", "productivity", "knowledge-work"]
 ---

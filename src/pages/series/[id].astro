@@ -1,0 +1,177 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Header from '../../components/Header.astro';
+import { SITE_TITLE } from '../../consts';
+import { getSeriesActivityDate, getSeriesGroups } from '../../lib/series';
+
+export async function getStaticPaths() {
+	const groups = await getSeriesGroups();
+	return groups.map((group) => ({
+		params: { id: group.key },
+		props: { group },
+	}));
+}
+
+const { group } = Astro.props;
+const { entry, members } = group;
+const { title, description, status } = entry.data;
+const { Content } = await render(entry);
+const hasBody = Boolean(entry.body?.replace(/<!--[\s\S]*?-->/g, '').trim());
+
+const projects = await getCollection('projects');
+const relatedProjects = group.projects
+	.map((id) => projects.find((project) => project.id === id))
+	.filter((project): project is NonNullable<typeof project> => project !== undefined);
+const lastActivity = getSeriesActivityDate(group);
+const statusLabel = { ongoing: 'Ongoing', complete: 'Complete' };
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`${title} -- ${SITE_TITLE}`} description={description} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<div class="prose" data-series-detail={group.key}>
+				<a class="back-link" href="/series">&larr; All series</a>
+				<div class="series-header">
+					<div class="series-meta">
+						<span class="status-badge">{statusLabel[status]}</span>
+						<span class="date">{members.length} {members.length === 1 ? 'post' : 'posts'}</span>
+						<span class="date">Latest activity <FormattedDate date={lastActivity} /></span>
+					</div>
+					<h1>{title}</h1>
+					<p class="description">{description}</p>
+					{relatedProjects.length > 0 && (
+						<p class="related-projects" data-series-projects>
+							{relatedProjects.length === 1 ? 'Project' : 'Projects'}:
+							{relatedProjects.map((project, index) => (
+								<>
+									{index > 0 && ', '}
+									<a href={`/projects/${project.id}/`}>{project.data.title}</a>
+								</>
+							))}
+						</p>
+					)}
+				</div>
+
+				{hasBody && (
+					<div class="content-body">
+						<Content />
+					</div>
+				)}
+
+				<ol class="series-posts">
+					{members.map((post) => (
+						<li data-series-member={post.id}>
+							<a href={`/blog/${post.id}/`}>
+								<span class="part">Part {post.data.seriesPart}</span>
+								<span class="post-title">{post.data.title}</span>
+								<span class="post-desc">{post.data.description}</span>
+								<span class="date"><FormattedDate date={post.data.pubDate} /></span>
+							</a>
+						</li>
+					))}
+				</ol>
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	.prose {
+		width: 720px;
+		max-width: calc(100% - 2em);
+		margin: 0 auto;
+		padding: 1em;
+	}
+	.series-header {
+		padding: 2em 0 1.5em;
+		border-bottom: 1px solid rgba(128,128,128,0.15);
+		margin-bottom: 2em;
+	}
+	.back-link {
+		font-size: 0.85rem;
+		color: var(--accent);
+		text-decoration: none;
+		display: inline-block;
+		margin-bottom: 1.25rem;
+	}
+	.back-link:hover { text-decoration: underline; }
+	.series-meta {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.75rem;
+	}
+	.status-badge {
+		font-size: 0.7rem;
+		font-weight: 700;
+		padding: 0.15em 0.55em;
+		border: 1px solid var(--accent);
+		color: var(--accent);
+		border-radius: 999px;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+	.date { font-size: 0.85rem; color: var(--text-muted); }
+	h1 {
+		margin: 0 0 0.5rem;
+		font-size: clamp(1.5rem, 4vw, 2.25rem);
+		line-height: 1.2;
+	}
+	.description {
+		color: var(--text-muted);
+		margin: 0 0 1rem;
+		font-size: 1.05rem;
+	}
+	.related-projects {
+		margin: 0;
+		font-size: 0.9rem;
+		color: var(--text-muted);
+	}
+	.content-body { margin-bottom: 2em; }
+	.series-posts {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		border: 1px solid var(--border);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+	.series-posts li + li { border-top: 1px solid var(--border); }
+	.series-posts a {
+		display: grid;
+		grid-template-columns: 4em minmax(0, 1fr);
+		column-gap: 0.75em;
+		row-gap: 0.2em;
+		padding: 1em 1.25em;
+		background: var(--bg-secondary);
+		color: var(--text);
+		text-decoration: none;
+	}
+	.series-posts a:hover,
+	.series-posts a:focus-visible { background: var(--bg); }
+	.series-posts a:hover .post-title,
+	.series-posts a:focus-visible .post-title { color: var(--accent); }
+	.part {
+		grid-row: 1 / span 3;
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--text-muted);
+		text-transform: uppercase;
+		padding-top: 0.2em;
+	}
+	.post-title { font-weight: 600; line-height: 1.35; }
+	.post-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; }
+	@media (max-width: 420px) {
+		.series-posts a { grid-template-columns: 3.25em minmax(0, 1fr); padding: 0.9em 1em; }
+	}
+</style>

@@ -4,7 +4,7 @@ description: "Most people treat prompts as instructions. They're not -- they're 
 pubDate: 2026-05-05
 heroImage: ""
 tags: ["ai", "workflow", "productivity", "knowledge-work"]
-series: "Working with AI in 2026"
+series: "working-with-ai-in-2026"
 seriesPart: 4
 ---
 

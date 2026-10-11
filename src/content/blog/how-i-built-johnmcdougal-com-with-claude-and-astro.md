@@ -3,7 +3,7 @@ title: "How I Built johnmcdougal.com with Claude and Astro"
 description: "Building this site with Claude wasn't about delegating the work -- it was about having a thinking partner who helped me make real decisions and ship something instead of planning forever."
 pubDate: 2026-05-03
 tags: ["astro", "cloudflare", "ai", "building-in-public"]
-series: "How I built johnmcdougal.com"
+series: "how-i-built-johnmcdougal-com"
 seriesPart: 1
 projectRef: "johnmcdougal-site"
 ---

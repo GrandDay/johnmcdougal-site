@@ -3,6 +3,7 @@ import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
 import Header from '../components/Header.astro';
 import { SITE_TITLE } from '../consts';
+import { DEFAULT_LAYOUT, LAYOUT_CONTROLS } from '../lib/graph-config.mjs';
 ---
 
 <!doctype html>
@@ -10,7 +11,7 @@ import { SITE_TITLE } from '../consts';
 <head>
   <BaseHead
     title={`Graph — ${SITE_TITLE}`}
-    description="Visual map of site content — posts, projects, and tags as a connected graph."
+    description="Visual map of site content — posts, projects, series, and tags as a connected graph."
   />
   <style>
     /* Full-width layout overrides */
@@ -52,6 +53,51 @@ import { SITE_TITLE } from '../consts';
       border-radius: 50%;
       flex-shrink: 0;
     }
+    .layout-panel {
+      max-width: 1120px;
+      margin: 0 auto 0.75rem;
+      padding: 0 1rem;
+    }
+    .layout-panel summary {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .layout-panel summary:hover { color: var(--accent); }
+    .layout-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem 1.5rem;
+      padding: 0.5rem 0 0.25rem;
+    }
+    .layout-control label {
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .layout-control input[type="range"] {
+      width: 100%;
+      min-height: 44px;
+      margin: 0;
+      accent-color: var(--accent);
+    }
+    .layout-reset {
+      min-height: 44px;
+      padding: 0.45rem 0.7rem;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--bg);
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.85rem;
+    }
+    .layout-reset:hover { border-color: var(--accent); }
     .graph-workspace {
       max-width: 1120px;
       margin: 0 auto;
@@ -252,7 +298,7 @@ import { SITE_TITLE } from '../consts';
   <main>
     <div class="graph-header">
       <h1>Content graph</h1>
-      <p>Every post, project, and tag -- and how they connect. Select a node to inspect it, then use the explicit link to open its page.</p>
+      <p>Every post, project, series, and tag -- and how they connect. Select a node to inspect it, then use the explicit link to open its page.</p>
     </div>
 
     <div class="legend">
@@ -265,6 +311,12 @@ import { SITE_TITLE } from '../consts';
         Project
       </div>
       <div class="legend-item">
+        <svg width="12" height="12" viewBox="-6 -6 12 12" style="flex-shrink:0" aria-hidden="true">
+          <path d="M0 -6 L6 0 L0 6 L-6 0 Z" fill="#8b5cf6" />
+        </svg>
+        Series
+      </div>
+      <div class="legend-item">
         <span class="legend-dot" style="background: #64748b;"></span>
         Tag
       </div>
@@ -273,6 +325,18 @@ import { SITE_TITLE } from '../consts';
           <line x1="0" y1="5" x2="28" y2="5" stroke="rgba(100,116,139,0.3)" stroke-width="2.5" />
         </svg>
         projectRef link
+      </div>
+      <div class="legend-item">
+        <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
+          <line x1="0" y1="5" x2="28" y2="5" stroke="rgba(100,116,139,0.3)" stroke-width="1.5" />
+        </svg>
+        series member
+      </div>
+      <div class="legend-item">
+        <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
+          <line x1="0" y1="5" x2="28" y2="5" stroke="rgba(100,116,139,0.3)" stroke-width="2" stroke-dasharray="10 4" />
+        </svg>
+        series project
       </div>
       <div class="legend-item">
         <svg width="28" height="10" style="flex-shrink:0" aria-hidden="true">
@@ -287,6 +351,32 @@ import { SITE_TITLE } from '../consts';
         selected connection
       </div>
     </div>
+
+    <details class="layout-panel" id="layout-panel">
+      <summary>Layout</summary>
+      <div class="layout-controls">
+        {Object.entries(LAYOUT_CONTROLS).map(([key, control]) => (
+          <div class="layout-control">
+            <label for={`layout-${key}`}>
+              <span>{control.label}</span>
+              <output id={`layout-${key}-value`} for={`layout-${key}`}>{DEFAULT_LAYOUT[key].toFixed(2)}&times;</output>
+            </label>
+            <input
+              type="range"
+              id={`layout-${key}`}
+              data-layout-key={key}
+              min={control.min}
+              max={control.max}
+              step={control.step}
+              value={control.default}
+            />
+          </div>
+        ))}
+        <div class="layout-control">
+          <button type="button" class="layout-reset" id="layout-reset">Reset layout</button>
+        </div>
+      </div>
+    </details>
 
     <div class="graph-workspace">
       <div class="graph-container">
@@ -331,8 +421,10 @@ import { SITE_TITLE } from '../consts';
 
   <div id="graph-tooltip"></div>
 
-  <script type="module">
+  <script>
+    // @ts-nocheck -- untyped d3 script; bundled by Astro so the shared config module resolves
     import * as d3 from 'https://cdn.jsdelivr.net/npm/d3@7/+esm';
+    import { loadLayout, resolveForces, sanitizeLayout, saveLayout } from '../lib/graph-config.mjs';
 
     const resp = await fetch('/graph.json');
     const data = await resp.json();
@@ -381,8 +473,12 @@ import { SITE_TITLE } from '../consts';
       });
     svg.call(zoomBehavior);
 
-    const nodeRadius = (d) => d.type === 'project' ? 12 : d.type === 'post' ? 8 : 5;
-    const nodeColor = (d) => d.type === 'project' ? '#f59e0b' : d.type === 'post' ? '#2dd4bf' : '#64748b';
+    const nodeRadius = (d) => d.type === 'project' ? 12 : d.type === 'series' ? 10 : d.type === 'post' ? 8 : 5;
+    const nodeColor = (d) => d.type === 'project' ? '#f59e0b' : d.type === 'series' ? '#8b5cf6' : d.type === 'post' ? '#2dd4bf' : '#64748b';
+    const nodeShape = (d) => {
+      const area = Math.PI * nodeRadius(d) ** 2;
+      return d3.symbol(d.type === 'series' ? d3.symbolDiamond : d3.symbolCircle, d.type === 'series' ? area * 1.6 : area)();
+    };
     const maxLabelLength = () => width < 520 ? 24 : width < 900 ? 34 : 42;
     const displayLabel = (d) => {
       const limit = maxLabelLength();
@@ -401,8 +497,8 @@ import { SITE_TITLE } from '../consts';
       .join('line')
       .attr('class', 'graph-edge')
       .attr('stroke', 'rgba(100,116,139,0.3)')
-      .attr('stroke-width', (d) => d.type === 'projectRef' ? 2.5 : 1)
-      .attr('stroke-dasharray', (d) => d.type === 'tag' ? '4 3' : null);
+      .attr('stroke-width', (d) => d.type === 'projectRef' ? 2.5 : d.type === 'seriesProject' ? 2 : d.type === 'series' ? 1.5 : 1)
+      .attr('stroke-dasharray', (d) => d.type === 'tag' ? '4 3' : d.type === 'seriesProject' ? '10 4' : null);
 
     const dragState = new WeakMap();
     const dragBehavior = d3.drag()
@@ -444,12 +540,12 @@ import { SITE_TITLE } from '../consts';
 
     // Nodes
     const node = g.append('g')
-      .selectAll('circle')
+      .selectAll('path')
       .data(data.nodes)
-      .join('circle')
-      .attr('r', nodeRadius)
+      .join('path')
+      .attr('d', nodeShape)
       .attr('fill', nodeColor)
-      .attr('stroke', (d) => d.type === 'post' || d.type === 'project' ? 'rgba(0,0,0,0.15)' : 'none')
+      .attr('stroke', (d) => d.type === 'post' || d.type === 'project' || d.type === 'series' ? 'rgba(0,0,0,0.15)' : 'none')
       .attr('stroke-width', 1)
       .attr('cursor', 'pointer')
       .attr('class', 'graph-node')
@@ -572,16 +668,18 @@ import { SITE_TITLE } from '../consts';
     };
 
     // Simulation
+    let layout = loadLayout(window.localStorage);
+    let forces = resolveForces(layout);
     const simulation = d3.forceSimulation(data.nodes)
       .force('link',
         d3.forceLink(data.edges)
           .id((d) => d.id)
-          .distance((d) => d.type === 'projectRef' ? 130 : 82)
-          .strength((d) => d.type === 'projectRef' ? 0.8 : 0.32)
+          .distance((d) => forces.linkDistance(d.type))
+          .strength((d) => forces.linkStrength(d.type))
       )
       .force('charge',
         d3.forceManyBody()
-          .strength((d) => d.type === 'tag' ? -75 : d.type === 'project' ? -300 : -230)
+          .strength((d) => forces.charge(d.type))
       )
       .force('center', d3.forceCenter(width / 2, height / 2))
       .force('x', d3.forceX(width / 2).strength(0.035))
@@ -594,8 +692,7 @@ import { SITE_TITLE } from '../consts';
           .attr('x2', (d) => d.target.x)
           .attr('y2', (d) => d.target.y);
         node
-          .attr('cx', (d) => d.x)
-          .attr('cy', (d) => d.y);
+          .attr('transform', (d) => `translate(${d.x},${d.y})`);
         hitArea
           .attr('cx', (d) => d.x)
           .attr('cy', (d) => d.y);
@@ -623,6 +720,46 @@ import { SITE_TITLE } from '../consts';
         .restart();
       updateSelection(selectedNodeId, false);
     });
+
+    const layoutInputs = [...document.querySelectorAll('[data-layout-key]')];
+    const syncLayoutInputs = () => {
+      layoutInputs.forEach((input) => {
+        const key = input.dataset.layoutKey;
+        input.value = String(layout[key]);
+        document.getElementById(`layout-${key}-value`).textContent = `${layout[key].toFixed(2)}\u00d7`;
+      });
+    };
+    const applyForces = () => {
+      forces = resolveForces(layout);
+      simulation.force('link')
+        .distance((d) => forces.linkDistance(d.type))
+        .strength((d) => forces.linkStrength(d.type));
+      simulation.force('charge').strength((d) => forces.charge(d.type));
+      // Adjusting layout is a viewport-affecting action; suppress the automatic refit.
+      lastUserViewportChangeAt = Date.now();
+      simulation.alpha(reduceMotion ? 0.1 : 0.4).restart();
+    };
+    let layoutFrame = 0;
+    layoutInputs.forEach((input) => {
+      input.addEventListener('input', () => {
+        layout = sanitizeLayout({ ...layout, [input.dataset.layoutKey]: Number(input.value) });
+        saveLayout(window.localStorage, layout);
+        syncLayoutInputs();
+        cancelAnimationFrame(layoutFrame);
+        layoutFrame = requestAnimationFrame(applyForces);
+      });
+    });
+    document.getElementById('layout-reset').addEventListener('click', () => {
+      layout = sanitizeLayout(undefined);
+      saveLayout(window.localStorage, layout);
+      syncLayoutInputs();
+      applyForces();
+      graphStatus.textContent = 'Layout reset to defaults.';
+    });
+    syncLayoutInputs();
+    if (layoutInputs.some((input) => Number(input.value) !== Number(input.defaultValue))) {
+      document.getElementById('layout-panel').open = true;
+    }
   </script>
 </body>
 </html>

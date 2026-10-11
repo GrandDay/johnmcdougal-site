@@ -1,0 +1,57 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Footer from '../../components/Footer.astro';
+import Header from '../../components/Header.astro';
+import SeriesCard from '../../components/SeriesCard.astro';
+import { SITE_TITLE } from '../../consts';
+import { getSeriesActivityDate, getSeriesGroups } from '../../lib/series';
+
+const pageDescription =
+	'Multi-part writing series on systems, infrastructure, AI workflows, and building johnmcdougal.com, read in order.';
+
+const groups = (await getSeriesGroups()).sort(
+	(a, b) => getSeriesActivityDate(b).valueOf() - getSeriesActivityDate(a).valueOf() || a.key.localeCompare(b.key),
+);
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<BaseHead title={`Series — ${SITE_TITLE}`} description={pageDescription} />
+	</head>
+	<body>
+		<Header />
+		<main>
+			<h1>Series</h1>
+			<p class="lead">
+				Multi-part writing, collected in reading order. Each series can span more than one project.
+			</p>
+
+			{groups.length === 0 && (
+				<p style="color: var(--text-muted)">No series yet.</p>
+			)}
+
+			<div class="series-grid" data-series-index>
+				{groups.map((group) => (
+					<SeriesCard group={group} showProjects headingLevel={2} />
+				))}
+			</div>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style>
+	h1 { margin-bottom: 0.25em; }
+	.lead {
+		color: var(--text-muted);
+		margin-bottom: 2em;
+		font-size: 1.05em;
+	}
+	.series-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+		gap: 1.25em;
+		align-items: start;
+	}
+</style>

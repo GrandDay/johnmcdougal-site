@@ -3,9 +3,9 @@ title: ""
 description: ""
 pubDate: YYYY-MM-DD
 tags: []
-# series: ""          # Must match the series definition exactly
+# series: ""          # Series entry ID (filename in src/content/series, e.g. "working-with-ai-in-2026")
 # seriesPart: 1       # Required together with series
-# projectRef: ""      # Project entry ID, e.g. "johnmcdougal-site"
+# projectRef: ""      # Project entry ID, e.g. "johnmcdougal-site"; a list is allowed: ["homelab", "phred"]
 # updatedDate: YYYY-MM-DD
 # heroImage: ""
 ---

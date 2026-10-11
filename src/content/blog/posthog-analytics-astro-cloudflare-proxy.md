@@ -3,7 +3,7 @@ title: "Setting Up PostHog Analytics on a Static Site (and Fixing What the Wizar
 description: "PostHog Cloud + a Cloudflare reverse proxy gives you real analytics without Google -- but skip the AI wizard and read the docs first."
 pubDate: 2026-05-03
 tags: ["posthog", "analytics", "astro", "cloudflare", "privacy"]
-series: "How I built johnmcdougal.com"
+series: "how-i-built-johnmcdougal-com"
 seriesPart: 3
 projectRef: "johnmcdougal-site"
 ---
