@@ -39,6 +39,12 @@ const expectedSeries = [
 		description: 'A practical series on context, iteration, prompts, reusable workflows, and human judgment in AI-assisted work.',
 		projects: [],
 	},
+	{
+		key: 'site-changelog',
+		label: 'Site Changelog',
+		description: 'A running record of what changed on johnmcdougal.com and why: the automation, the rendering features, and the structure behind the site.',
+		projects: ['johnmcdougal-site'],
+	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
 const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
@@ -55,6 +61,7 @@ const expectedSourceDates = {
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
 	'blog/proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home.md': '2026-09-17',
+	'blog/series-graph-and-mermaid-updates.md': '2026-10-10',
 	'blog/site-automation-workflow-updates.md': '2026-09-17',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
 	'blog/whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
@@ -75,21 +82,27 @@ const expectedProjectUpdatedDates = {
 	'projects/aeon-desktop.md': '2026-07-16',
 	'projects/cue-verse.md': '2026-07-16',
 	'projects/homelab.md': '2026-09-17',
-	'projects/johnmcdougal-site.md': '2026-07-16',
+	'projects/johnmcdougal-site.md': '2026-10-10',
 	'projects/phred.md': '2026-07-16',
 	'projects/userspace.md': '2026-07-16',
 };
+const expectedBlogUpdatedDates = {
+	'blog/site-automation-workflow-updates.md': '2026-10-10',
+};
+const expectedBlogUpdatedById = new Map(
+	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
+);
 const expectedBaseline = {
-	sitemapRouteCount: 100,
-	tagDetailRouteCount: 64,
-	chronologicalPostCount: 21,
-	seriesGroupCount: 2,
-	seriesMemberCount: 14,
-	rssItemCount: 21,
-	graphNodeCount: 93,
-	graphEdgeCount: 177,
-	graphNodeHash: '1ae857f2578f45e20c267e0a6b62b33f77a7fddde8afa398c561a85dcc18dfa8',
-	graphEdgeHash: 'f850dab3d569f5732241af8d51309cd7bdb81d0cd0ed1394a4fdc38e4c3ff89f',
+	sitemapRouteCount: 103,
+	tagDetailRouteCount: 65,
+	chronologicalPostCount: 22,
+	seriesGroupCount: 3,
+	seriesMemberCount: 15,
+	rssItemCount: 22,
+	graphNodeCount: 96,
+	graphEdgeCount: 185,
+	graphNodeHash: '552ca0525a940f6a5b760f9dba7a5d5d9a257fca7d0c23ffb23000123c696221',
+	graphEdgeHash: '4062a1554995ad5ad6102f682c99020e603cf4c4a311a57250701d0ae607ce92',
 };
 
 function fail(message) {
@@ -215,8 +228,13 @@ for (const [relativePath, expectedPubDate] of Object.entries(expectedSourceDates
 		} else if (expectedUpdatedDate !== null && actualUpdatedDate !== expectedUpdatedDate) {
 			fail(`Project updatedDate mismatch for ${relativePath}: expected ${expectedUpdatedDate}, found ${actualUpdatedDate ?? 'none'}.`);
 		}
-	} else if (actualUpdatedDate !== null) {
-		fail(`Unexpected blog updatedDate for ${relativePath}: found ${actualUpdatedDate}.`);
+	} else {
+		const expectedUpdatedDate = expectedBlogUpdatedDates[relativePath] ?? null;
+		if (expectedUpdatedDate === null && actualUpdatedDate !== null) {
+			fail(`Unexpected blog updatedDate for ${relativePath}: found ${actualUpdatedDate}.`);
+		} else if (expectedUpdatedDate !== null && actualUpdatedDate !== expectedUpdatedDate) {
+			fail(`Blog updatedDate mismatch for ${relativePath}: expected ${expectedUpdatedDate}, found ${actualUpdatedDate ?? 'none'}.`);
+		}
 	}
 }
 
@@ -237,7 +255,7 @@ for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 
 	const entry = {
 		id: contentEntryId(relativePath),
-		date: new Date(`${sourceDate}T00:00:00.000Z`),
+		date: new Date(`${expectedBlogUpdatedDates[relativePath] ?? sourceDate}T00:00:00.000Z`),
 	};
 	for (const projectRef of projectRefs) {
 		const projectBaselineDate = projectBaselineDateById.get(projectRef);
@@ -480,7 +498,16 @@ for (const [relativePath, sourceDate] of Object.entries(expectedSourceDates)) {
 		if (!html.includes(`"datePublished":"${date.toISOString()}"`)) {
 			fail(`Blog entry "${id}" is missing its datePublished metadata.`);
 		}
-		if (html.includes('"dateModified":')) {
+		const expectedBlogUpdated = expectedBlogUpdatedDates[relativePath];
+		if (expectedBlogUpdated) {
+			const updated = new Date(`${expectedBlogUpdated}T00:00:00.000Z`);
+			if (!hasLabeledDate(html, 'Updated', updated)) {
+				fail(`Blog entry "${id}" is missing its UTC-stable Updated label.`);
+			}
+			if (!html.includes(`"dateModified":"${updated.toISOString()}"`)) {
+				fail(`Blog entry "${id}" is missing its dateModified metadata.`);
+			}
+		} else if (html.includes('"dateModified":')) {
 			fail(`Blog entry "${id}" exposes dateModified without an updatedDate.`);
 		}
 		continue;
@@ -703,7 +730,11 @@ for (const id of chronologicalIds) {
 	if (/^(series|seriesPart|projectRef):/m.test(frontmatter)) {
 		fail(`Raw Markdown contract changed for "${id}": relationship metadata was exposed.`);
 	}
-	if (/^updated:/m.test(frontmatter)) {
+	const expectedBlogUpdated = expectedBlogUpdatedById.get(id);
+	const hasUpdated = /^updated:/m.test(frontmatter);
+	if (expectedBlogUpdated && !frontmatter.includes(`updated: ${expectedBlogUpdated}`)) {
+		fail(`Raw Markdown is missing the expected updated date for blog entry "${id}".`);
+	} else if (!expectedBlogUpdated && hasUpdated) {
 		fail(`Raw Markdown exposed an update for unchanged blog entry "${id}".`);
 	}
 }

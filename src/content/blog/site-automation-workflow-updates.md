@@ -1,14 +1,15 @@
 ---
 title: "How The Site Started Validating Itself Before I Can Commit It"
-description: "A quick note on the automation, content linting, and workflow cleanup added to johnmcdougal.com today."
+description: "The automation, content linting, and validation workflow that checks johnmcdougal.com before a commit, and how it stays in sync with the content instead of hardcoded counts."
 pubDate: 2026-09-17
-series: "how-i-built-johnmcdougal-com"
-seriesPart: 7
+updatedDate: 2026-10-10
+series: "site-changelog"
+seriesPart: 1
 projectRef: "johnmcdougal-site"
 tags: ["site-build", "automation", "workflow", "documentation", "meta"]
 ---
 
-> **TL;DR:** The site now normalizes content tags, refreshes its generated-output baselines during the commit workflow, and checks blog routes against normalized filenames instead of raw source names.
+> **TL;DR:** The site normalizes content tags, refreshes its generated-output baselines during the commit workflow, checks blog routes against normalized filenames, and now derives its series, project, and `llms.txt` expectations from the content instead of hardcoded counts.
 
 The first pass at this workflow removed some repetitive cleanup, but a new standalone post exposed a gap: Astro built the route from a lowercased, hyphenated filename while the verifier expected the source filename verbatim. The page built correctly, then the commit check failed while looking for a route that did not exist.
 
@@ -22,6 +23,14 @@ That staging step matters: the commit check rejects untracked files so it can va
 
 The blog template now shows every supported frontmatter field. The common fields stay active; less-used fields such as `updatedDate`, `heroImage`, `projectRef`, `series`, and `seriesPart` are commented out until needed. Series metadata must be added as a pair, and a new series also needs its own entry in `src/content/series`.
 
+## Derived instead of hardcoded
+
+Adding a series part exposed the next gap: the verifier still assumed six members per series, twelve across both series, and six related-project posts. Those numbers were correct on the day I wrote them and wrong the day I added a part. The checks now read `series`, `seriesPart`, and `projectRef` from the post source and compare the rendered pages to that order, so a new part is a content change with no script edit.
+
+The same idea applies to `llms.txt`. It used to be a hand-written file that listed one standalone post out of seven. It is now a generated route built from the collections, with each entry’s description taken from its frontmatter, and the verifier checks that every post and project appears in it.
+
+Blog `updatedDate` is allowed too. The baseline sync records it the same way it records project updates, and the verifier checks the page label, the `dateModified` metadata, and the raw Markdown so a revised post is visible rather than silently edited.
+
 ## Generated versus curated
 
 Most publishing surfaces follow the collections automatically. Adding content generates its detail route, tag pages, raw Markdown endpoint for blog posts, RSS item, sitemap entry, `llms.txt` entry, and graph node and edges. A blog post joins a project in the graph when its `projectRef` matches that project’s entry ID.
@@ -32,7 +41,7 @@ The project index has optional editorial priority and evidence text for selected
 
 This site is supposed to be a live record of the work, not just a polished front end. If the workflow is fragile, writing slows down; if validation checks the wrong route, it becomes noise instead of protection. The changes make the routine path clearer while keeping the exceptions visible.
 
-I am still iterating on the workflow, but the direction is clear: fewer manual fixes, generated surfaces that follow their source data, and a small number of intentional editorial inventories.
+I am still iterating on the workflow, but the direction is clear: fewer manual fixes, generated surfaces that follow their source data, and a small number of intentional editorial choices.
 
 ---
 

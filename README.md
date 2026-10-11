@@ -70,7 +70,7 @@ The review server binds to `127.0.0.1` by default and writes ignored state/logs 
 ### Standalone blog post
 
 1. Copy `src/content/blog/_template-blog.md` to `src/content/blog/<lowercase-kebab-case-slug>.md`. The filename determines the URL; `title` is only the displayed heading. Uppercase and spaces are normalized for route checks, but use a stable lowercase filename with letters, numbers, and hyphens.
-2. Fill in `title`, `description`, `pubDate` (`YYYY-MM-DD`), and `tags`. The template includes every blog frontmatter field: uncomment optional `updatedDate`, `heroImage`, and `projectRef` as needed. For a series post, uncomment both `series` and `seriesPart`; `series` is the filename (ID) of an entry in `src/content/series`.
+2. Fill in `title`, `description`, `pubDate` (`YYYY-MM-DD`), and `tags`. The template includes every blog frontmatter field: uncomment optional `updatedDate` (set it only when materially revising a published post; it shows an "Updated" label and `dateModified`, and `npm run verify-build:sync-baseline` records it), `heroImage`, and `projectRef` as needed. For a series post, uncomment both `series` and `seriesPart`; `series` is the filename (ID) of an entry in `src/content/series`.
 3. Run `npm run check` to validate content and types. Use `npm run review` if you want a validated local preview.
 4. Stage the new post and any other intended content edits: `git add -- src/content/blog/<your-slug>.md`.
 5. Run `npm run verify-build:sync-baseline`. It rebuilds the site, updates the generated-output expectations in `scripts/verify-build.mjs`, and stages that file automatically. You do not need to edit baseline counts or hashes by hand. The pre-commit hook repeats this step automatically.

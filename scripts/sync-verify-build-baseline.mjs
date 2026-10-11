@@ -201,13 +201,14 @@ function main() {
 
 	const expectedSourceDates = {};
 	const expectedProjectUpdatedDates = {};
+	const expectedBlogUpdatedDates = {};
 	const standalonePosts = [];
 
 	for (const item of blogFiles) {
 		const frontmatter = parseFrontmatter(item.absolutePath);
 		expectedSourceDates[item.relativePath] = parseDate(frontmatter.pubDate, `${item.relativePath} pubDate`);
 		if (frontmatter.updatedDate) {
-			throw new Error(`Blog entry ${item.relativePath} has updatedDate; verify-build expects blog updatedDate to be absent.`);
+			expectedBlogUpdatedDates[item.relativePath] = parseDate(frontmatter.updatedDate, `${item.relativePath} updatedDate`);
 		}
 		if (!frontmatter.series) {
 			standalonePosts.push({ slug: item.slug, pubDate: frontmatter.pubDate });
@@ -276,6 +277,12 @@ function main() {
 		/const expectedProjectUpdatedDates = \{[\s\S]*?\};/,
 		`const expectedProjectUpdatedDates = ${formatObject(expectedProjectUpdatedDates)};`,
 		'expectedProjectUpdatedDates',
+	);
+	verifyBuild = replaceBlock(
+		verifyBuild,
+		/const expectedBlogUpdatedDates = \{[\s\S]*?\};/,
+		`const expectedBlogUpdatedDates = ${formatObject(expectedBlogUpdatedDates)};`,
+		'expectedBlogUpdatedDates',
 	);
 	verifyBuild = replaceBlock(
 		verifyBuild,

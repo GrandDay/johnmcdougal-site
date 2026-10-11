@@ -2,8 +2,8 @@
 title: "Mermaid Diagrams in Astro with Local Bundling"
 description: "How I added lazy, locally bundled Mermaid rendering to blog and project content, with theme-aware SVGs and a Proxmox layering article to exercise it."
 pubDate: 2026-10-07
-series: "how-i-built-johnmcdougal-com"
-seriesPart: 8
+series: "site-changelog"
+seriesPart: 2
 projectRef: "johnmcdougal-site"
 tags: ["astro", "mermaid", "site-build", "accessibility", "documentation"]
 ---

@@ -2,7 +2,7 @@
 title: "This Site"
 description: "The Astro 7 public documentation site for projects, writing, metadata, tags, RSS, and Cloudflare deployment behavior."
 pubDate: 2026-04-15
-updatedDate: 2026-07-16
+updatedDate: 2026-10-10
 status: active
 tags: ["astro", "cloudflare", "web", "blog", "site-build", "email"]
 repoUrl: "https://github.com/GrandDay/johnmcdougal-site"
@@ -90,3 +90,4 @@ work can decide whether parsed links or backlinks should become data edges.
 - [Userspace](/projects/userspace/) is the source, prompt, review, and publication workflow behind the project documentation.
 - [How I Built johnmcdougal.com with Claude and Astro](/blog/how-i-built-johnmcdougal-com-with-claude-and-astro/) is the first post in the public build series for this site.
 - [PostHog Analytics on Astro with a Cloudflare Reverse Proxy](/blog/posthog-analytics-astro-cloudflare-proxy/) documents the analytics path.
+- [Site Changelog](/series/site-changelog/) records what changed on the site and why.
