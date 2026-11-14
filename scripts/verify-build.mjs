@@ -55,6 +55,7 @@ const expectedSeries = [
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
 const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
 const expectedSourceDates = {
+	'blog/choosing-where-an-action-should-live.md': '2026-11-14',
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
 	'blog/email-authentication-spf-dkim-dmarc.md': '2026-05-04',
@@ -100,16 +101,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 107,
+	sitemapRouteCount: 108,
 	tagDetailRouteCount: 67,
-	chronologicalPostCount: 23,
+	chronologicalPostCount: 24,
 	seriesGroupCount: 4,
-	seriesMemberCount: 16,
-	rssItemCount: 23,
-	graphNodeCount: 100,
-	graphEdgeCount: 192,
-	graphNodeHash: '9e949fdeeb39ec7f262be9eb811b98f3d03e84e58a9dee8bd71edaf06bb7da7b',
-	graphEdgeHash: '70604b716817656d4e947b6459c5815f844bf1adc925b48580f9cdb466dd48c2',
+	seriesMemberCount: 17,
+	rssItemCount: 24,
+	graphNodeCount: 101,
+	graphEdgeCount: 198,
+	graphNodeHash: '9b05f5929c10d15d703f72db9e20852f2ef10a72815129b49afcfed5c4ef6586',
+	graphEdgeHash: 'ecb3893a63696959aba8cbf6faf7e472a71a711d11b517b662269c87bc88bc59',
 };
 
 function fail(message) {

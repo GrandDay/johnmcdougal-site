@@ -188,7 +188,7 @@ if (diagrams.length > 0) {
 					maxEdges: 500,
 					secure: ['securityLevel', 'startOnLoad', 'suppressErrorRendering', 'maxTextSize', 'maxEdges', 'theme', 'themeVariables', 'fontFamily', 'darkMode', 'layout'],
 					theme: 'base' as const,
-					flowchart: { useMaxWidth: false },
+					flowchart: { useMaxWidth: false, wrappingWidth: 240 },
 					darkMode: theme !== 'light',
 					fontFamily: getComputedStyle(document.body).fontFamily,
 					themeVariables: {
