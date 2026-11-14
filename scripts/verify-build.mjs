@@ -57,6 +57,7 @@ const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401
 const expectedSourceDates = {
 	'blog/choosing-where-an-action-should-live.md': '2026-11-14',
 	'blog/custom-email-routing-cloudflare-smtp2go.md': '2026-05-03',
+	'blog/designing-controls-that-stay-memorable.md': '2026-11-14',
 	'blog/dmarc-reporting-postmark-digest.md': '2026-05-04',
 	'blog/email-authentication-spf-dkim-dmarc.md': '2026-05-04',
 	'blog/fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state.md': '2026-09-25',
@@ -101,16 +102,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 108,
+	sitemapRouteCount: 109,
 	tagDetailRouteCount: 67,
-	chronologicalPostCount: 24,
+	chronologicalPostCount: 25,
 	seriesGroupCount: 4,
-	seriesMemberCount: 17,
-	rssItemCount: 24,
-	graphNodeCount: 101,
-	graphEdgeCount: 198,
-	graphNodeHash: '9b05f5929c10d15d703f72db9e20852f2ef10a72815129b49afcfed5c4ef6586',
-	graphEdgeHash: 'ecb3893a63696959aba8cbf6faf7e472a71a711d11b517b662269c87bc88bc59',
+	seriesMemberCount: 18,
+	rssItemCount: 25,
+	graphNodeCount: 102,
+	graphEdgeCount: 204,
+	graphNodeHash: '6e2edfbb71389f56226f665c1b0e99b56ee58cced7f2d13cd00d124bd9850f4c',
+	graphEdgeHash: '669bd40b1001253a01367d645abba0c928656b1047fca11a0519ae1187588102',
 };
 
 function fail(message) {
