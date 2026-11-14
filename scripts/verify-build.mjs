@@ -45,6 +45,12 @@ const expectedSeries = [
 		description: 'A running record of what changed on johnmcdougal.com and why: the automation, the rendering features, and the structure behind the site.',
 		projects: ['johnmcdougal-site'],
 	},
+	{
+		key: 'personalizing-your-input-layer',
+		label: 'Personalizing Your Input Layer',
+		description: 'A series about arranging hardware and software controls around how I work and play, while keeping them understandable and recoverable.',
+		projects: ['userspace'],
+	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
 const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
@@ -59,6 +65,7 @@ const expectedSourceDates = {
 	'blog/layering-a-proxmox-homelab.md': '2026-10-07',
 	'blog/mermaid-diagrams-in-astro-with-local-bundling.md': '2026-10-07',
 	'blog/parked-domain-email-authentication.md': '2026-05-04',
+	'blog/personalizing-how-you-interact-with-your-computer.md': '2026-11-13',
 	'blog/posthog-analytics-astro-cloudflare-proxy.md': '2026-05-03',
 	'blog/proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home.md': '2026-09-17',
 	'blog/series-graph-and-mermaid-updates.md': '2026-10-10',
@@ -93,16 +100,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 103,
-	tagDetailRouteCount: 65,
-	chronologicalPostCount: 22,
-	seriesGroupCount: 3,
-	seriesMemberCount: 15,
-	rssItemCount: 22,
-	graphNodeCount: 96,
-	graphEdgeCount: 185,
-	graphNodeHash: '552ca0525a940f6a5b760f9dba7a5d5d9a257fca7d0c23ffb23000123c696221',
-	graphEdgeHash: '4062a1554995ad5ad6102f682c99020e603cf4c4a311a57250701d0ae607ce92',
+	sitemapRouteCount: 107,
+	tagDetailRouteCount: 67,
+	chronologicalPostCount: 23,
+	seriesGroupCount: 4,
+	seriesMemberCount: 16,
+	rssItemCount: 23,
+	graphNodeCount: 100,
+	graphEdgeCount: 192,
+	graphNodeHash: '9e949fdeeb39ec7f262be9eb811b98f3d03e84e58a9dee8bd71edaf06bb7da7b',
+	graphEdgeHash: '70604b716817656d4e947b6459c5815f844bf1adc925b48580f9cdb466dd48c2',
 };
 
 function fail(message) {
@@ -554,6 +561,7 @@ if (countMatches(seriesIndex, /data-series-member=/g) !== expectedBaseline.serie
 
 const sourceMembersBySeries = new Map();
 const sourceProjectMemberIds = new Set();
+const sourceMemberProjects = new Map();
 for (const relativePath of Object.keys(expectedSourceDates)) {
 	if (!relativePath.startsWith('blog/')) continue;
 	const source = readFileSync(sourceFilePath(relativePath), 'utf8');
@@ -564,6 +572,7 @@ for (const relativePath of Object.keys(expectedSourceDates)) {
 	const members = sourceMembersBySeries.get(seriesKey) ?? [];
 	members.push({ id, part });
 	sourceMembersBySeries.set(seriesKey, members);
+	sourceMemberProjects.set(id, sourceProjectRefs(source));
 	if (sourceProjectRefs(source).includes('johnmcdougal-site')) sourceProjectMemberIds.add(id);
 }
 const expectedMembersBySeries = new Map(
@@ -688,6 +697,10 @@ for (const series of expectedSeries) {
 		}
 
 		const actualProject = attributeValue(html, 'data-related-project');
+		const expectedProjects = sourceMemberProjects.get(id) ?? [];
+		if (expectedProjects.length > 0 && (!actualProject || !expectedProjects.includes(actualProject))) {
+			fail(`Series entry "${id}" has related project ${JSON.stringify(actualProject)}; expected one of ${JSON.stringify(expectedProjects)}.`);
+		}
 		if (actualProject) relatedProjectResults.push({ id, project: actualProject });
 	}
 }
@@ -710,14 +723,13 @@ if (attributeValue(homelabPostHtml, 'data-related-project') !== 'homelab') {
 	fail(`Standalone post "${homelabPost}" is missing its resolved Homelab project relationship.`);
 }
 
+const siteProjectResults = relatedProjectResults.filter(({ project }) => project === 'johnmcdougal-site');
 if (
-	relatedProjectResults.length !== sourceProjectMemberIds.size ||
-	relatedProjectResults.some(
-		({ id, project }) => project !== 'johnmcdougal-site' || !sourceProjectMemberIds.has(id),
-	)
+	siteProjectResults.length !== sourceProjectMemberIds.size ||
+	siteProjectResults.some(({ id }) => !sourceProjectMemberIds.has(id))
 ) {
 	fail(
-		`Expected resolved johnmcdougal-site relationships for [${[...sourceProjectMemberIds].join(', ')}]; found ${JSON.stringify(relatedProjectResults)}.`,
+		`Expected resolved johnmcdougal-site relationships for [${[...sourceProjectMemberIds].join(', ')}]; found ${JSON.stringify(siteProjectResults)}.`,
 	);
 }
 
