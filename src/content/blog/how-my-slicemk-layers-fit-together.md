@@ -22,8 +22,8 @@ My current keymap uses ZMK and defines these seven layers in this order. The ent
 | 1 | Numpad | Numeric entry | Left-side toggle, right-side hold, or explicit transition from Mouse | Release a momentary hold or use explicit Main | Keypad, operators, Home/End, media and volume |
 | 2 | Mouse | Keyboard pointer and scrolling controls | Hold the `P` position | Release the hold or use explicit Main | Pointer movement, scrolling, function and media keys |
 | 3 | Symbols | Symbols and navigation | Hold semicolon or either direct Symbol key | Release the hold or use explicit Main | Symbols, function keys, arrows, Home/End |
-| 4 | FPS Gaming | Restricted gaming layout | Explicit transition from Main or Fn | Explicit Main or Fn transition | Letters, numbers, arrows, modifiers, thumb navigation |
-| 5 | Fn | Function keys | Hold the Main thumb key or transition explicitly from Gaming | Release a momentary hold, or transition explicitly to Main or Gaming | Function keys and explicit transitions |
+| 4 | FPS Gaming | Restricted gaming layout | Explicit transition from Main or Fn | Explicit Main transition; hold Fn temporarily | Letters, numbers, arrows, modifiers, thumb navigation |
+| 5 | Fn | Function keys | Hold the Main thumb key or the Gaming lower-row key | Release the hold, or use an available explicit transition | Function keys and explicit transitions |
 | 6 | Bluetooth | Connection and output controls | Explicit transition from Main | Explicit Main transition | Bluetooth profile selection, pairing clear, output toggle |
 
 ---
@@ -37,9 +37,9 @@ Numpad has two paths from Main. The left-side control toggles it on for a longer
 | Layer-tap | Hold `P` for Mouse; tap it for `P` | Release the hold, or use Mouse's explicit Main control |
 | Momentary hold | Hold a direct Symbol key | Release the hold, or use Symbols' explicit Main control |
 | Toggle | Toggle Numpad from Main | Use Numpad's explicit Main control |
-| Explicit transition | Move from Gaming to Fn | Select an explicit Main or Gaming transition from Fn |
+| Explicit transition | Move from Gaming to Main | Select Gaming from Main when needed |
 
-The difference matters when deciding how long I want another set of controls available. A brief hold suits an action in the middle of typing; a deliberate transition makes sense when I am changing context for longer. Gaming has explicit routes to Main and Fn, and Fn has explicit routes back to either. Bluetooth has its own deliberate entry and return. Mouse also has an explicit Numpad transition as well as a Main control.
+The difference matters when deciding how long I want another set of controls available. A brief hold suits an action in the middle of typing; a deliberate transition makes sense when I am changing context for longer. Gaming has an explicit return to Main and a momentary Fn hold. Fn also includes explicit Main and Gaming controls when those positions are available. Bluetooth has its own deliberate entry and return. Mouse also has an explicit Numpad transition as well as a Main control.
 
 ---
 
@@ -48,7 +48,7 @@ This diagram is a conceptual view of those paths. Momentary layers can act as ov
 ```mermaid
 stateDiagram-v2
     accTitle: SliceMK ZMK layer access and transitions
-    accDescr: Main provides held access to Mouse, Symbols, Numpad, and Fn, a Numpad toggle, and explicit transitions to Gaming and Bluetooth. Gaming and Fn have explicit paths to each other and Main. Mouse can also transition to Numpad. Momentary layers are overlays.
+    accDescr: Main provides held access to Mouse, Symbols, Numpad, and Fn, a Numpad toggle, and explicit transitions to Gaming and Bluetooth. Gaming has a momentary Fn hold and an explicit return to Main. Fn has explicit Main and Gaming controls when available. Mouse can also transition to Numpad. Momentary layers are overlays.
 
     [*] --> MAIN
     MAIN --> MOUSE: Hold P
@@ -61,8 +61,9 @@ stateDiagram-v2
     FN --> MAIN: Release hold or select Main
     MAIN --> FPSGAMING: Select Gaming
     FPSGAMING --> MAIN: Select Main
-    FPSGAMING --> FN: Select Fn
-    FN --> FPSGAMING: Select Gaming
+    FPSGAMING --> FN: Hold Gaming Fn key
+    FN --> FPSGAMING: Release Gaming Fn hold
+    FN --> FPSGAMING: Select Gaming from Main Fn hold
     MAIN --> BT: Select Bluetooth
     BT --> MAIN: Select Main
     MOUSE --> NMPAD: Select Numpad

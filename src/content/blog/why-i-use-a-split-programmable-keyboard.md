@@ -28,7 +28,7 @@ The keyboard's firmware is **ZMK**, and my current keymap has seven layers: Main
 
 A layer does not have to take a key away from its usual job. On Main, tapping `P` types `P`, while holding that position accesses the Mouse layer. Tapping semicolon types semicolon; holding it accesses Symbols. The keymap also has direct Symbol holds, plus both a toggle and a momentary hold for Numpad. Those choices let me reach another set of controls and return to typing without filling the main layout with every possible action.
 
-Typing and games ask different things of the keyboard. The FPS Gaming layer keeps letters, numbers, arrows, and selected utilities available, while restricting access to the Mouse, Symbol, and Numpad layers. It uses explicit transitions, including a path to Fn and a return to Main. I will get into the layer relationships and the reasons for those boundaries later in the series; for now, they show how the same physical keyboard can serve different contexts deliberately.
+Typing and games ask different things of the keyboard. The FPS Gaming layer keeps letters, numbers, arrows, and selected utilities available, while restricting access to the Mouse, Symbol, and Numpad layers. It provides a momentary Fn hold and an explicit return to Main. I will get into the layer relationships and the reasons for those boundaries later in the series; for now, they show how the same physical keyboard can serve different contexts deliberately.
 
 | Design need | Keyboard response | Example in my keymap | Why I keep it here | Beyond the keyboard |
 | --- | --- | --- | --- | --- |
