@@ -71,6 +71,7 @@ const expectedSourceDates = {
 	'blog/fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state.md': '2026-09-25',
 	'blog/hello-world.md': '2026-04-16',
 	'blog/how-i-built-johnmcdougal-com-with-claude-and-astro.md': '2026-05-03',
+	'blog/how-my-slicemk-layers-fit-together.md': '2026-11-15',
 	'blog/how-to-backup-and-restore-the-windows-registry.md': '2026-09-17',
 	'blog/layering-a-proxmox-homelab.md': '2026-10-07',
 	'blog/mermaid-diagrams-in-astro-with-local-bundling.md': '2026-10-07',
@@ -111,16 +112,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 115,
+	sitemapRouteCount: 116,
 	tagDetailRouteCount: 69,
-	chronologicalPostCount: 28,
+	chronologicalPostCount: 29,
 	seriesGroupCount: 5,
-	seriesMemberCount: 21,
-	rssItemCount: 28,
-	graphNodeCount: 108,
-	graphEdgeCount: 224,
-	graphNodeHash: '592fca0eb36041df68dffb1720805d812755a6a51ae5d66d0aeada87569f7d0c',
-	graphEdgeHash: 'ac24854bb3f20559c4ac201199ff2ee6864e4b9ac7330e32bd8c3d02a9d0b61a',
+	seriesMemberCount: 22,
+	rssItemCount: 29,
+	graphNodeCount: 109,
+	graphEdgeCount: 231,
+	graphNodeHash: 'e218cde0846e21893bbf7d9c953e9f2a1aee675fc63a68c52e2306d368727b61',
+	graphEdgeHash: 'e29d92a37cc619ccb8ea00d38cfb3ade7c9d1b1cafa7c05bbaaa9583adec5e40',
 };
 
 function fail(message) {
