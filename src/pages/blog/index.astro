@@ -5,15 +5,16 @@ import Footer from '../../components/Footer.astro';
 import FormattedDate from '../../components/FormattedDate.astro';
 import Header from '../../components/Header.astro';
 import { SITE_TITLE } from '../../consts';
-import { getSeriesGroups } from '../../lib/series';
+import { getSeriesActivityDate, getSeriesGroups } from '../../lib/series';
+import { compareWritingPosts } from '../../lib/writing-order.mjs';
 
 const pageDescription =
 	'Essays and technical notes on systems, documentation, AI workflows, Cloudflare, email infrastructure, and building johnmcdougal.com.';
 
-const posts = (await getCollection('blog')).sort(
-	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+const posts = (await getCollection('blog')).sort(compareWritingPosts);
+const seriesGroups = (await getSeriesGroups()).sort(
+	(a, b) => getSeriesActivityDate(b).valueOf() - getSeriesActivityDate(a).valueOf() || a.key.localeCompare(b.key),
 );
-const seriesGroups = await getSeriesGroups();
 
 const tagMap = new Map<string, number>();
 posts.forEach((post) => {
