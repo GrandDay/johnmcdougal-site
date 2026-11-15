@@ -83,6 +83,7 @@ const expectedSourceDates = {
 	'blog/site-automation-workflow-updates.md': '2026-09-17',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
 	'blog/typing-and-coding-without-a-separate-numpad.md': '2026-11-15',
+	'blog/what-i-keep-out-of-keyboard-firmware.md': '2026-11-15',
 	'blog/whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
 	'blog/why-i-use-a-split-programmable-keyboard.md': '2026-11-14',
 	'blog/why-my-gaming-layer-restricts-layer-switching.md': '2026-11-15',
@@ -114,16 +115,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 119,
+	sitemapRouteCount: 120,
 	tagDetailRouteCount: 70,
-	chronologicalPostCount: 31,
+	chronologicalPostCount: 32,
 	seriesGroupCount: 5,
-	seriesMemberCount: 24,
-	rssItemCount: 31,
-	graphNodeCount: 112,
-	graphEdgeCount: 246,
-	graphNodeHash: '8405856363962ca4133cc1ae5b8999cfe3c41477cf1e4b4e6f3ff41aaadae932',
-	graphEdgeHash: '34af58cfca8d80f64a9952a823cb21ae70f70b08d3c68b90713430c1334c0ed7',
+	seriesMemberCount: 25,
+	rssItemCount: 32,
+	graphNodeCount: 113,
+	graphEdgeCount: 253,
+	graphNodeHash: 'b47caa43087e416436f0f2fa8369020dc03ff4fcc8ea01204d4e523a58dd235f',
+	graphEdgeHash: '55f8eb1eb0b24b56ac81d4068220706568a6ac4b1b87d6f87e8511002de532e5',
 };
 
 function fail(message) {
