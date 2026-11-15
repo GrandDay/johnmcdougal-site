@@ -51,6 +51,12 @@ const expectedSeries = [
 		description: 'A series about arranging hardware and software controls around how I work and play, while keeping them understandable and recoverable.',
 		projects: ['userspace'],
 	},
+	{
+		key: 'slicemk-keyboard-layers',
+		label: 'Building My Keyboard Layer with a SliceMK ErgoDox',
+		description: 'How a split SliceMK keyboard and ZMK layers bring typing, navigation, and gaming controls closer to my hands.',
+		projects: ['userspace'],
+	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
 const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
@@ -76,6 +82,7 @@ const expectedSourceDates = {
 	'blog/site-automation-workflow-updates.md': '2026-09-17',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
 	'blog/whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
+	'blog/why-i-use-a-split-programmable-keyboard.md': '2026-11-14',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
 	'blog/working-with-ai-iteration-as-method.md': '2026-05-05',
 	'blog/working-with-ai-systems-that-build-systems.md': '2026-05-05',
@@ -104,16 +111,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 111,
-	tagDetailRouteCount: 67,
-	chronologicalPostCount: 27,
-	seriesGroupCount: 4,
-	seriesMemberCount: 20,
-	rssItemCount: 27,
-	graphNodeCount: 104,
-	graphEdgeCount: 216,
-	graphNodeHash: 'f0b2c3dd4c7215b6165cc89d85c2d2f4ac2554a9dd45c930add8472e2a4d4e6d',
-	graphEdgeHash: '6a5d4f221136489de290c7dceca77825d2fefa449d828a42a2be2caffd9742f4',
+	sitemapRouteCount: 115,
+	tagDetailRouteCount: 69,
+	chronologicalPostCount: 28,
+	seriesGroupCount: 5,
+	seriesMemberCount: 21,
+	rssItemCount: 28,
+	graphNodeCount: 108,
+	graphEdgeCount: 224,
+	graphNodeHash: '592fca0eb36041df68dffb1720805d812755a6a51ae5d66d0aeada87569f7d0c',
+	graphEdgeHash: 'ac24854bb3f20559c4ac201199ff2ee6864e4b9ac7330e32bd8c3d02a9d0b61a',
 };
 
 function fail(message) {
