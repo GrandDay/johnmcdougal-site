@@ -57,6 +57,12 @@ const expectedSeries = [
 		description: 'How a split SliceMK keyboard and ZMK layers bring typing, navigation, and gaming controls closer to my hands.',
 		projects: ['userspace'],
 	},
+	{
+		key: 'swiftpoint-mouse-profiles',
+		label: 'Building High-Density Mouse Profiles with Swiftpoint',
+		description: 'How I use Swiftpoint mouse profiles, gestures, and feedback to bring actions within reach while pointing, working, and playing.',
+		projects: ['userspace'],
+	},
 ];
 const homelabPost = 'trusted-proxmox-certificates-with-acme-dns-01';
 const standalonePosts = ['layering-a-proxmox-homelab', 'fixing-codex-desktop-401-unauthorized-errors-caused-by-stale-authentication-state', 'how-to-backup-and-restore-the-windows-registry', 'proxmox-from-pets-to-cattle-and-how-to-balance-these-ideas-at-home', 'whoops-i-accidentally-misassociated-this-file-extension', 'trusted-proxmox-certificates-with-acme-dns-01', 'hello-world'];
@@ -87,6 +93,7 @@ const expectedSourceDates = {
 	'blog/whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
 	'blog/why-i-use-a-split-programmable-keyboard.md': '2026-11-14',
 	'blog/why-my-gaming-layer-restricts-layer-switching.md': '2026-11-15',
+	'blog/why-the-mouse-is-central-to-my-input-layer.md': '2026-11-15',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
 	'blog/working-with-ai-iteration-as-method.md': '2026-05-05',
 	'blog/working-with-ai-systems-that-build-systems.md': '2026-05-05',
@@ -115,16 +122,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 120,
-	tagDetailRouteCount: 70,
-	chronologicalPostCount: 32,
-	seriesGroupCount: 5,
-	seriesMemberCount: 25,
-	rssItemCount: 32,
-	graphNodeCount: 113,
-	graphEdgeCount: 253,
-	graphNodeHash: 'b47caa43087e416436f0f2fa8369020dc03ff4fcc8ea01204d4e523a58dd235f',
-	graphEdgeHash: '55f8eb1eb0b24b56ac81d4068220706568a6ac4b1b87d6f87e8511002de532e5',
+	sitemapRouteCount: 124,
+	tagDetailRouteCount: 72,
+	chronologicalPostCount: 33,
+	seriesGroupCount: 6,
+	seriesMemberCount: 26,
+	rssItemCount: 33,
+	graphNodeCount: 117,
+	graphEdgeCount: 261,
+	graphNodeHash: '22c14a631ab7a5dea5d62138cf2d8f95ffc74267acc1e940a23c94a34fc51a7e',
+	graphEdgeHash: '191d547067e35d43cfa6c883450e5aa42d0c7dbbfc5b9728821c4fa221e33a45',
 };
 
 function fail(message) {
