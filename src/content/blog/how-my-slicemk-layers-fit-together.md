@@ -30,7 +30,7 @@ My current keymap uses ZMK and defines these seven layers in this order. The ent
 
 Two positions on Main do different work depending on how I use them. Tapping `P` types the letter; holding it exposes Mouse. Semicolon works the same way for Symbols. ZMK calls this a **layer-tap**: an ordinary key stays available for typing, and a hold gives the position another purpose. I also have two lower-row keys that bring up Symbols directly while held, plus a thumb key that momentarily brings up Fn.
 
-Numpad has two paths from Main. The left-side control toggles it on for a longer run of numbers; the right-side control brings it up while held. For the momentary path, releasing the key ends the hold. In the current Numpad layout, an explicit Main control provides the return after using the toggle.
+Numpad has two paths from Main. The left-side control toggles it on for a longer run of numbers; the right-side control brings it up while held. For the momentary path, releasing the key ends the hold. In the current Numpad layout, an explicit Main control on the thumb cluster provides the return after using the toggle, in the same position as the Main return on the other supporting layers.
 
 | Mechanism | Example | How I return |
 | --- | --- | --- |
@@ -68,7 +68,7 @@ stateDiagram-v2
     MOUSE --> NMPAD: Select Numpad
 ```
 
-The layer layouts also make room for controls in different places. Main uses modifier-taps on the quote, slash, and equals positions, while Symbols places arrows along the lower right and Home and End near the thumbs. Gaming keeps a separate set of arrows and modifier positions. These placements give each context its own useful arrangement while the thumb navigation remains a familiar part of the keyboard.
+The layer layouts also make room for controls in different places. Main uses modifier-taps on the quote, slash, and equals positions, while Symbols places arrows on the right-hand home row and Home and End near the thumbs. Gaming keeps a separate set of arrows and modifier positions. These placements give each context its own useful arrangement while the thumb navigation remains a familiar part of the keyboard.
 
 ---
 

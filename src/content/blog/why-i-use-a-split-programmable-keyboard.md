@@ -18,7 +18,7 @@ The keyboard I use is a SliceMK ErgoDox Wireless Lite. What matters to me is the
 
 ---
 
-The thumb clusters are especially useful because they give repeated actions a place near my resting position. My current keymap puts Space, Backspace, Delete, Escape, Tab, Return, Home, End, Page Up, and Page Down on the thumb clusters and nearby positions. Fn access and an explicit transition to the gaming layer also live there. Moving some of that work to the thumbs changes which combinations are practical while the other fingers stay available for typing, modifiers, movement, or another action.
+The thumb clusters are especially useful because they give repeated actions a place near my resting position. My current keymap puts Space, Backspace, Delete, Escape, Tab, Return, Home, End, Page Up, and Page Down on the thumb clusters and nearby positions. Fn access and an explicit transition to the gaming layer also live there. Several supporting layers use that same gaming-transition position to return to Main. Moving some of that work to the thumbs changes which combinations are practical while the other fingers stay available for typing, modifiers, movement, or another action.
 
 This does not make every combination effortless. It gives me another set of placement choices. A mapping that looks clever on paper still has to be comfortable to use, memorable in context, and worth keeping after the novelty wears off.
 

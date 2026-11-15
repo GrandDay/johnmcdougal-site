@@ -82,6 +82,7 @@ const expectedSourceDates = {
 	'blog/series-graph-and-mermaid-updates.md': '2026-10-10',
 	'blog/site-automation-workflow-updates.md': '2026-09-17',
 	'blog/trusted-proxmox-certificates-with-acme-dns-01.md': '2026-07-17',
+	'blog/typing-and-coding-without-a-separate-numpad.md': '2026-11-15',
 	'blog/whoops-I-accidentally-misassociated-this-file-extension.md': '2026-09-17',
 	'blog/why-i-use-a-split-programmable-keyboard.md': '2026-11-14',
 	'blog/working-with-ai-context-is-the-interface.md': '2026-05-04',
@@ -112,16 +113,16 @@ const expectedBlogUpdatedById = new Map(
 	Object.entries(expectedBlogUpdatedDates).map(([relativePath, date]) => [contentEntryId(relativePath), date]),
 );
 const expectedBaseline = {
-	sitemapRouteCount: 116,
+	sitemapRouteCount: 117,
 	tagDetailRouteCount: 69,
-	chronologicalPostCount: 29,
+	chronologicalPostCount: 30,
 	seriesGroupCount: 5,
-	seriesMemberCount: 22,
-	rssItemCount: 29,
-	graphNodeCount: 109,
-	graphEdgeCount: 231,
-	graphNodeHash: 'e218cde0846e21893bbf7d9c953e9f2a1aee675fc63a68c52e2306d368727b61',
-	graphEdgeHash: 'e29d92a37cc619ccb8ea00d38cfb3ade7c9d1b1cafa7c05bbaaa9583adec5e40',
+	seriesMemberCount: 23,
+	rssItemCount: 30,
+	graphNodeCount: 110,
+	graphEdgeCount: 238,
+	graphNodeHash: '7f65e23042e347a0cfbced12d8175611c205da0412305a17d0a870410b0235d8',
+	graphEdgeHash: '69c018da64e44cd24ed867a2f408680bd704584e188f62bd8db8e93ef448dfb2',
 };
 
 function fail(message) {
